@@ -19,20 +19,6 @@ It includes the following popular libraries:
   Infinite scrolling support for paged image feeds.
 - [Coil](https://github.com/coil-kt/coil) - Image loading in Compose Multiplatform.
 
-The shared Compose app mirrors the Android Compose template architecture:
-
-- `commonMain/data` contains the Room `Image` entity, DAO, database, Picsum paging source, and
-  repository.
-- `commonMain/ui` contains the paged wallpaper-style Home grid, Detail screen, shared components,
-  and Material theme.
-- `commonMain/navigation` uses Navigation3 with a simple Home -> Detail back stack.
-- `commonMain/datastore` persists lightweight user preferences like first-launch onboarding
-  completion and last selected image metadata.
-- `commonMain/di` defines the platform-agnostic Metro graph contract.
-- `androidMain/di` and `iosMain/di` provide platform-specific Metro graphs, Room builders, and
-  DataStore instances.
-- `commonMain/network` contains a shared Ktor HTTP client and Picsum API integration.
-
 ## How to use
 
 To use this template, simply click on the **Use this template** button at the top (or fork the
