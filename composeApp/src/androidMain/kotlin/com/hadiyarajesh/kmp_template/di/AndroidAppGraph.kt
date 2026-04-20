@@ -5,8 +5,11 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.hadiyarajesh.kmp_template.data.database.AppDatabase
 import com.hadiyarajesh.kmp_template.data.database.createDatabase
+import com.hadiyarajesh.kmp_template.data.download.AndroidImageSaver
+import com.hadiyarajesh.kmp_template.data.download.ImageSaver
 import com.hadiyarajesh.kmp_template.database.getDatabaseBuilderForAndroid
 import com.hadiyarajesh.kmp_template.datastore.createDataStoreForAndroid
+import dev.zacsweers.metro.Binds
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
@@ -28,4 +31,7 @@ interface AndroidAppGraph : CommonAppGraph {
     @SingleIn(AppScope::class)
     fun provideDatabase(context: Context): AppDatabase =
         createDatabase(getDatabaseBuilderForAndroid(context))
+
+    @Binds
+    val AndroidImageSaver.bind: ImageSaver
 }

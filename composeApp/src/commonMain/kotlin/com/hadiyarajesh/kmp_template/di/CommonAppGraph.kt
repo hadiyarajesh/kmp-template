@@ -8,14 +8,16 @@ import com.hadiyarajesh.kmp_template.data.repository.HomeRepositoryImpl
 import com.hadiyarajesh.kmp_template.network.AppHttpClient
 import com.hadiyarajesh.kmp_template.network.PicsumApi
 import com.hadiyarajesh.kmp_template.network.PicsumApiImpl
+import com.hadiyarajesh.kmp_template.ui.detail.DetailViewModel
 import com.hadiyarajesh.kmp_template.ui.home.HomeViewModel
 import com.hadiyarajesh.kmp_template.ui.onboarding.OnboardingViewModel
 import dev.zacsweers.metro.Binds
 import dev.zacsweers.metro.Provides
 
 interface CommonAppGraph {
-    fun getHomeViewModel(): HomeViewModel
     fun getOnboardingViewModel(): OnboardingViewModel
+    fun getHomeViewModel(): HomeViewModel
+    fun getDetailViewModel(): DetailViewModel
     fun getAppHttpClient(): AppHttpClient
 
     @Binds

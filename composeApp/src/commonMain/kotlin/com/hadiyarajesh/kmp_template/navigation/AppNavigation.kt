@@ -14,7 +14,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.hadiyarajesh.kmp_template.di.LocalAppGraph
 import com.hadiyarajesh.kmp_template.ui.components.LoadingIndicator
-import com.hadiyarajesh.kmp_template.ui.detail.DetailScreen
+import com.hadiyarajesh.kmp_template.ui.detail.DetailScreenRoute
 import com.hadiyarajesh.kmp_template.ui.home.HomeScreenRoute
 import com.hadiyarajesh.kmp_template.ui.onboarding.OnboardingScreen
 
@@ -78,8 +78,11 @@ fun AppNavigation(
                 }
 
                 is NavDestination.Detail -> NavEntry(key) {
-                    DetailScreen(
+                    val detailViewModel = viewModel { appGraph.getDetailViewModel() }
+
+                    DetailScreenRoute(
                         image = key.image,
+                        viewModel = detailViewModel,
                         onBackClick = {
                             if (backStack.size > 1) {
                                 backStack.removeLastOrNull()

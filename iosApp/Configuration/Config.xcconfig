@@ -1,6 +1,6 @@
 TEAM_ID=
 
-PRODUCT_NAME=Kmptemplate
+PRODUCT_NAME=KMP Template
 PRODUCT_BUNDLE_IDENTIFIER=com.hadiyarajesh.kmp_template.Kmptemplate$(TEAM_ID)
 
 CURRENT_PROJECT_VERSION=1

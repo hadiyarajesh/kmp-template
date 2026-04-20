@@ -19,6 +19,12 @@
     <string name="url">URL</string>
     <string name="failed_to_load_image">Failed to load image</string>
     <string name="failed_to_open_url">Failed to open URL</string>
+    <string name="save_to_device">Download</string>
+    <string name="downloading">Downloading...</string>
+    <string name="image_saved_success">Image saved to your device</string>
+    <string name="download_permission_denied">Storage permission is required to save images</string>
+    <string name="download_permission_denied_with_settings">Storage permission is not available. Please go to Settings and allow access.</string>
+    <string name="go_to_settings">Go to Settings</string>
     <string name="onboarding_title">Premium Wallpapers for Every Style</string>
     <string name="onboarding_subtitle">Discover high-quality wallpapers with smooth browsing, quick previews, and a refined viewing experience across Android and iOS.</string>
     <string name="onboarding_feature_hd_images">HD Images</string>

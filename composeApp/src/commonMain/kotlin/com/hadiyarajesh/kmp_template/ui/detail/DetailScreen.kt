@@ -8,19 +8,29 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,6 +48,7 @@ import com.hadiyarajesh.kmp_template.ui.components.ClickableUrlText
 import com.hadiyarajesh.kmp_template.ui.components.HorizontalSpacer
 import com.hadiyarajesh.kmp_template.ui.components.TopBarWithBackButton
 import com.hadiyarajesh.kmp_template.ui.components.VerticalSpacer
+import com.hadiyarajesh.kmp_template.ui.permission.rememberDownloadPermissionRequester
 import com.hadiyarajesh.kmp_template.ui.theme.AppTheme
 import kmp_template.composeapp.generated.resources.Res
 import kmp_template.composeapp.generated.resources.about
@@ -46,32 +57,106 @@ import kmp_template.composeapp.generated.resources.description
 import kmp_template.composeapp.generated.resources.detail
 import kmp_template.composeapp.generated.resources.dimensions
 import kmp_template.composeapp.generated.resources.download
+import kmp_template.composeapp.generated.resources.download_permission_denied
+import kmp_template.composeapp.generated.resources.download_permission_denied_with_settings
+import kmp_template.composeapp.generated.resources.downloading
 import kmp_template.composeapp.generated.resources.failed_to_load_image
+import kmp_template.composeapp.generated.resources.go_to_settings
 import kmp_template.composeapp.generated.resources.image_placeholder
+import kmp_template.composeapp.generated.resources.image_saved_success
+import kmp_template.composeapp.generated.resources.save_to_device
 import kmp_template.composeapp.generated.resources.source
 import kmp_template.composeapp.generated.resources.welcome_message
+import kotlinx.coroutines.flow.collectLatest
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun DetailScreen(
+fun DetailScreenRoute(
     image: Image,
+    viewModel: DetailViewModel,
     onBackClick: () -> Unit
 ) {
+    val uriHandler = LocalUriHandler.current
+    val isDownloading by viewModel.isDownloading.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val imageSavedMessage = stringResource(Res.string.image_saved_success)
+    val permissionDeniedMessage = stringResource(Res.string.download_permission_denied)
+    val permissionDeniedWithSettingsMessage =
+        stringResource(Res.string.download_permission_denied_with_settings)
+    val goToSettingsLabel = stringResource(Res.string.go_to_settings)
+
+    val permissionRequester = rememberDownloadPermissionRequester { granted ->
+        if (granted) {
+            viewModel.downloadImage(image)
+        } else {
+            viewModel.notifyPermissionDenied()
+        }
+    }
+
+    LaunchedEffect(
+        viewModel,
+        imageSavedMessage,
+        permissionDeniedMessage,
+        permissionDeniedWithSettingsMessage,
+        goToSettingsLabel,
+        permissionRequester,
+        snackbarHostState
+    ) {
+        viewModel.events.collectLatest { event ->
+            when (event) {
+                DownloadEvent.Success -> snackbarHostState.showSnackbar(imageSavedMessage)
+
+                DownloadEvent.PermissionDenied -> {
+                    val canOpenSettings = permissionRequester.canOpenSettings()
+                    val result = snackbarHostState.showSnackbar(
+                        message = if (canOpenSettings) {
+                            permissionDeniedWithSettingsMessage
+                        } else {
+                            permissionDeniedMessage
+                        },
+                        actionLabel = if (canOpenSettings) goToSettingsLabel else null,
+                        withDismissAction = canOpenSettings
+                    )
+                    if (canOpenSettings && result == SnackbarResult.ActionPerformed) {
+                        permissionRequester.openSettings()
+                    }
+                }
+
+                is DownloadEvent.Error -> snackbarHostState.showSnackbar(event.message)
+            }
+        }
+    }
+
     DetailScreenContent(
         image = image,
-        onBackClick = onBackClick
+        isDownloading = isDownloading,
+        onBackClick = onBackClick,
+        snackbarHostState = snackbarHostState,
+        onDownloadClick = {
+            if (permissionRequester.hasRequiredPermission()) {
+                viewModel.downloadImage(image)
+            } else {
+                permissionRequester.requestPermission()
+            }
+        },
+        onImageUrlClick = { url ->
+            runCatching { uriHandler.openUri(url) }
+        }
     )
 }
 
 @Composable
 private fun DetailScreenContent(
     image: Image,
-    onBackClick: () -> Unit
+    isDownloading: Boolean,
+    onBackClick: () -> Unit,
+    snackbarHostState: SnackbarHostState,
+    onDownloadClick: () -> Unit,
+    onImageUrlClick: (String) -> Unit
 ) {
-    val uriHandler = LocalUriHandler.current
-
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopBarWithBackButton(
                 title = stringResource(Res.string.detail),
@@ -92,9 +177,9 @@ private fun DetailScreenContent(
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp),
                 image = image,
-                onImageUrlClick = { url ->
-                    runCatching { uriHandler.openUri(url) }
-                }
+                isDownloading = isDownloading,
+                onDownloadClick = onDownloadClick,
+                onImageUrlClick = onImageUrlClick
             )
         }
     }
@@ -104,6 +189,8 @@ private fun DetailScreenContent(
 private fun ImageDetailView(
     modifier: Modifier = Modifier,
     image: Image,
+    isDownloading: Boolean,
+    onDownloadClick: () -> Unit,
     onImageUrlClick: (String) -> Unit
 ) {
     Column(
@@ -125,6 +212,8 @@ private fun ImageDetailView(
 
         AboutCard(
             image = image,
+            isDownloading = isDownloading,
+            onDownloadClick = onDownloadClick,
             onImageUrlClick = onImageUrlClick
         )
     }
@@ -240,6 +329,8 @@ private fun MetadataChip(
 private fun AboutCard(
     modifier: Modifier = Modifier,
     image: Image,
+    isDownloading: Boolean,
+    onDownloadClick: () -> Unit,
     onImageUrlClick: (String) -> Unit
 ) {
     OutlinedCard(
@@ -269,6 +360,25 @@ private fun AboutCard(
                 style = MaterialTheme.typography.bodyLarge,
                 color = contentColor
             )
+
+            VerticalSpacer(size = 14)
+
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isDownloading,
+                onClick = onDownloadClick
+            ) {
+                if (isDownloading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp
+                    )
+                    HorizontalSpacer(size = 10)
+                    Text(text = stringResource(Res.string.downloading))
+                } else {
+                    Text(text = stringResource(Res.string.save_to_device))
+                }
+            }
 
             VerticalSpacer(size = 18)
 
@@ -343,7 +453,11 @@ private fun DetailScreenPreview() {
                 description = stringResource(Res.string.welcome_message),
                 altText = stringResource(Res.string.failed_to_load_image)
             ),
-            onBackClick = {}
+            isDownloading = false,
+            onBackClick = {},
+            snackbarHostState = remember { SnackbarHostState() },
+            onDownloadClick = {},
+            onImageUrlClick = {}
         )
     }
 }
