@@ -1,18 +1,87 @@
-This is a Kotlin Multiplatform project targeting Android, iOS.
+# KMP Template
 
-* [/composeApp](./composeApp/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./composeApp/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./composeApp/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./composeApp/src/jvmMain/kotlin)
-    folder is the appropriate location.
+This template repository provides a quick start for creating new Kotlin Multiplatform apps using
+[Compose Multiplatform](https://www.jetbrains.com/compose-multiplatform/) as the UI framework and
+targeting Android and iOS from a shared codebase.
 
-* [/iosApp](./iosApp/iosApp) contains iOS applications. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+It includes the following popular libraries:
 
-### Build and Run Android Application
+- [Metro](https://github.com/ZacSweers/metro) - A lightweight dependency injection framework used
+  here for shared and platform-specific DI graphs.
+- [Room](https://developer.android.com/training/data-storage/room) - Cross-platform local
+  persistence for Android and iOS with a shared schema setup.
+- [Ktor](https://ktor.io/) - A multiplatform HTTP client for networking.
+- [Coil](https://github.com/coil-kt/coil) - Image loading in Compose Multiplatform.
+- [AndroidX DataStore](https://developer.android.com/topic/libraries/architecture/datastore) -
+  Key-value persistence for lightweight app preferences.
+- [AndroidX Paging](https://developer.android.com/topic/libraries/architecture/paging/v3-overview) -
+  Infinite scrolling support for paged image feeds.
+- [Navigation3](https://developer.android.com/jetpack/androidx/releases/navigation3) - Multiplatform
+  navigation APIs used for the app flow.
+
+The shared Compose app mirrors the Android Compose template architecture:
+
+- `commonMain/data` contains the Room `Image` entity, DAO, database, Picsum paging source, and
+  repository.
+- `commonMain/ui` contains the paged wallpaper-style Home grid, Detail screen, shared components,
+  and Material theme.
+- `commonMain/navigation` uses Navigation3 with a simple Home -> Detail back stack.
+- `commonMain/datastore` persists lightweight user preferences like first-launch onboarding
+  completion and last selected image metadata.
+- `commonMain/di` defines the platform-agnostic Metro graph contract.
+- `androidMain/di` and `iosMain/di` provide platform-specific Metro graphs, Room builders, and
+  DataStore instances.
+- `commonMain/network` contains a shared Ktor HTTP client and Picsum API integration.
+
+## How to use
+
+To use this template, simply click on the **Use this template** button at the top (or fork the
+repository) and start building your app on top of it.
+Make sure to update the package name, app identifiers, and other app-specific details before
+building and deploying your app.
+
+## Project structure
+
+- [/composeApp](./composeApp/src) is for shared and platform-specific Kotlin code:
+  - [commonMain](./composeApp/src/commonMain/kotlin) contains shared logic, UI, and app
+    architecture.
+  - [androidMain](./composeApp/src/androidMain/kotlin) contains Android-only implementations.
+  - [iosMain](./composeApp/src/iosMain/kotlin) contains iOS-only implementations.
+- [/iosApp](./iosApp/iosApp) contains the iOS entry application and SwiftUI integration layer.
+
+## CI/CD
+
+This project includes built-in support for [GitHub Actions](https://github.com/features/actions) to
+automate builds, run tests, and ensure code quality.
+CI/CD workflows can be found in the `.github/workflows/` directory and can be customized based on
+your needs.
+
+## Unit Testing
+
+This project supports multiplatform testing with the following features:
+
+- Common Kotlin tests in `commonTest` (for example, utility and PagingSource behavior tests).
+- Android host test execution via Gradle (`./gradlew :composeApp:testDebugUnitTest`).
+- iOS simulator test execution via Gradle (`./gradlew :composeApp:iosSimulatorArm64Test`) for shared
+  `commonTest` coverage.
+- Platform-specific source sets like `androidUnitTest` and `iosTest` can be added as needed when
+  target-specific test cases grow.
+
+## Annotation Processing
+
+This project uses [Kotlin Symbol Processing (KSP)](https://kotlinlang.org/docs/ksp-overview.html)
+for annotation processing, including Room and Metro generated code.
+
+## Build and Configuration Caching
+
+This project also takes advantage of
+Gradle's [Build Cache](https://docs.gradle.org/current/userguide/build_cache.html)
+and [Configuration Cache](https://docs.gradle.org/current/userguide/configuration_cache.html)
+features to speed up builds and reduce build times.
+Note that these features may not always provide significant improvements in build times depending on
+the project structure and build complexity.
+
+## Build and Run Android Application
 
 To build and run the development version of the Android app, use the run configuration from the run widget
 in your IDE’s toolbar or build it directly from the terminal:
@@ -25,11 +94,17 @@ in your IDE’s toolbar or build it directly from the terminal:
   .\gradlew.bat :composeApp:assembleDebug
   ```
 
-### Build and Run iOS Application
+## Build and Run iOS Application
 
 To build and run the development version of the iOS app, use the run configuration from the run widget
 in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and run it from there.
 
----
+## Contribution
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+Contributions to this project are welcome! If you encounter any problems or have suggestions for
+improvement, feel free to submit a pull request or open an issue.
+
+## License
+
+This project is licensed under
+the [MIT License](https://github.com/hadiyarajesh/compose-template/blob/master/LICENSE).
