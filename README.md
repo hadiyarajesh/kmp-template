@@ -49,6 +49,34 @@ building and deploying your app.
   - [iosMain](./composeApp/src/iosMain/kotlin) contains iOS-only implementations.
 - [/iosApp](./iosApp/iosApp) contains the iOS entry application and SwiftUI integration layer.
 
+## Visuals
+
+### Android
+
+<table>
+  <tr>
+    <th>Home Screen</th>
+    <th>Detail Screen</th>
+  </tr>
+  <tr>
+    <td><img src="./assets/android_home_screen.png" width="400" /></td>
+    <td><img src="./assets/android_detail_screen.png" width="400" /></td>
+  </tr>
+</table>
+
+### iOS
+
+<table>
+  <tr>
+    <th>Home Screen</th>
+    <th>Detail Screen</th>
+  </tr>
+  <tr>
+    <td><img src="./assets/ios_home_screen.png" width="400" /></td>
+    <td><img src="./assets/ios_detail_screen.png" width="400" /></td>
+  </tr>
+</table>
+
 ## CI/CD
 
 This project includes built-in support for [GitHub Actions](https://github.com/features/actions) to
