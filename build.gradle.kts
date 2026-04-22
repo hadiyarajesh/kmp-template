@@ -11,19 +11,25 @@ plugins {
 subprojects {
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
 
-    val sourceKtlintCheckTaskNames = listOf(
+    val allowedSourceKtlintCheckTaskNames = listOf(
         "runKtlintCheckOverCommonMainSourceSet",
         "runKtlintCheckOverCommonTestSourceSet",
         "runKtlintCheckOverAndroidMainSourceSet",
+        "runKtlintCheckOverAndroidUnitTestSourceSet",
+        "runKtlintCheckOverAndroidInstrumentedTestSourceSet",
         "runKtlintCheckOverIosMainSourceSet",
+        "runKtlintCheckOverIosTestSourceSet",
         "runKtlintCheckOverKotlinScripts"
     )
 
-    val sourceKtlintFormatTaskNames = listOf(
+    val allowedSourceKtlintFormatTaskNames = listOf(
         "runKtlintFormatOverCommonMainSourceSet",
         "runKtlintFormatOverCommonTestSourceSet",
         "runKtlintFormatOverAndroidMainSourceSet",
+        "runKtlintFormatOverAndroidUnitTestSourceSet",
+        "runKtlintFormatOverAndroidInstrumentedTestSourceSet",
         "runKtlintFormatOverIosMainSourceSet",
+        "runKtlintFormatOverIosTestSourceSet",
         "runKtlintFormatOverKotlinScripts"
     )
 
@@ -41,10 +47,10 @@ subprojects {
     }
 
     tasks.register("ktlintSourceCheck") {
-        dependsOn(sourceKtlintCheckTaskNames)
+        dependsOn(tasks.matching { it.name in allowedSourceKtlintCheckTaskNames })
     }
 
     tasks.register("ktlintSourceFormat") {
-        dependsOn(sourceKtlintFormatTaskNames)
+        dependsOn(tasks.matching { it.name in allowedSourceKtlintFormatTaskNames })
     }
 }
