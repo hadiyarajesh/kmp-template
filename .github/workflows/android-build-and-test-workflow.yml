@@ -3,9 +3,9 @@ name: Android build and test
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "main" ]
     types: [ "opened", "reopened", "synchronize", "ready_for_review" ]
 
 jobs:
