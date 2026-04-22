@@ -117,4 +117,4 @@ improvement, feel free to submit a pull request or open an issue.
 ## License
 
 This project is licensed under
-the [MIT License](https://github.com/hadiyarajesh/compose-template/blob/master/LICENSE).
+the [MIT License](https://github.com/hadiyarajesh/kmp-template/blob/main/LICENSE).
