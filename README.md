@@ -28,28 +28,16 @@ Make sure to update the package name, app identifiers, and other app-specific de
 building and deploying your app.
 
 ## Visuals
-
-### Android
-
 <table>
   <tr>
-    <th>Home Screen</th>
-    <th>Detail Screen</th>
+    <th>Home Screen - Android</th>
+    <th>Detail Screen - Android</th>
+    <th>Home Screen - iOS</th>
+    <th>Detail Screen - iOS</th>
   </tr>
   <tr>
     <td><img src="./assets/android_home_screen.png" width="400" /></td>
     <td><img src="./assets/android_detail_screen.png" width="400" /></td>
-  </tr>
-</table>
-
-### iOS
-
-<table>
-  <tr>
-    <th>Home Screen</th>
-    <th>Detail Screen</th>
-  </tr>
-  <tr>
     <td><img src="./assets/ios_home_screen.png" width="400" /></td>
     <td><img src="./assets/ios_detail_screen.png" width="400" /></td>
   </tr>
@@ -64,12 +52,20 @@ building and deploying your app.
     - [iosMain](./composeApp/src/iosMain/kotlin) contains iOS-only implementations.
 - [/iosApp](./iosApp/iosApp) contains the iOS entry application and SwiftUI integration layer.
 
-## CI/CD
+## Build and Run Android Application
 
-This project includes built-in support for [GitHub Actions](https://github.com/features/actions) to
-automate builds, run tests, and ensure code quality.
-CI/CD workflows can be found in the `.github/workflows/` directory and can be customized based on
-your needs.
+To build and run the development version of the Android app, use the run configuration from the run
+widget in your IDE’s toolbar or build it directly from the terminal:
+
+```shell
+./gradlew :composeApp:assembleDebug
+```
+
+## Build and Run iOS Application
+
+To build and run the development version of the iOS app, use the run configuration from the run
+widget
+in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and run it from there.
 
 ## Unit Testing
 
@@ -79,15 +75,13 @@ This project supports multiplatform testing with the following features:
 - Android host test execution via Gradle (`./gradlew :composeApp:testDebugUnitTest`).
 - iOS simulator test execution via Gradle (`./gradlew :composeApp:iosSimulatorArm64Test`) for shared
   `commonTest` coverage.
-- Platform-specific source sets like `androidUnitTest` and `iosTest` can be added as needed when
-  target-specific test cases grow.
+- Platform-specific source sets like `androidUnitTest` and `iosTest` can be added as needed.
 
 ## Formatting
 
-This project uses [Ktlint](https://pinterest.github.io/ktlint/) for Kotlin code style and
-formatting.
+This project uses [Ktlint](https://github.com/pinterest/ktlint) for Kotlin code style and formatting.
 
-To format Kotlin code locally, run:
+To format Kotlin code, run:
 
 ```shell
 ./gradlew ktlintSourceFormat
@@ -99,6 +93,13 @@ To check formatting without changing files, run:
 ./gradlew ktlintSourceCheck
 ```
 
+## CI/CD
+
+This project includes built-in support for [GitHub Actions](https://github.com/features/actions) to
+automate builds, run tests, and ensure code quality.
+CI/CD workflows can be found in the `.github/workflows/` directory and can be customized based on
+your needs.
+
 ## Build and Configuration Caching
 
 This project also takes advantage of
@@ -107,27 +108,6 @@ and [Configuration Cache](https://docs.gradle.org/current/userguide/configuratio
 features to speed up builds and reduce build times.
 Note that these features may not always provide significant improvements in build times depending on
 the project structure and build complexity.
-
-## Build and Run Android Application
-
-To build and run the development version of the Android app, use the run configuration from the run
-widget
-in your IDE’s toolbar or build it directly from the terminal:
-
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:assembleDebug
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:assembleDebug
-  ```
-
-## Build and Run iOS Application
-
-To build and run the development version of the iOS app, use the run configuration from the run
-widget
-in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and run it from there.
 
 ## Contribution
 
