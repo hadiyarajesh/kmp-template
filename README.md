@@ -18,6 +18,7 @@ It includes the following popular libraries:
 - [AndroidX Paging](https://developer.android.com/topic/libraries/architecture/paging/v3-overview) -
   Infinite scrolling support for paged image feeds.
 - [Coil](https://github.com/coil-kt/coil) - Image loading in Compose Multiplatform.
+- [Ktlint](https://pinterest.github.io/ktlint/) - Kotlin code style checks and formatting.
 
 ## How to use
 
@@ -25,15 +26,6 @@ To use this template, simply click on the **Use this template** button at the to
 repository) and start building your app on top of it.
 Make sure to update the package name, app identifiers, and other app-specific details before
 building and deploying your app.
-
-## Project structure
-
-- [/composeApp](./composeApp/src) is for shared and platform-specific Kotlin code:
-  - [commonMain](./composeApp/src/commonMain/kotlin) contains shared logic, UI, and app
-    architecture.
-  - [androidMain](./composeApp/src/androidMain/kotlin) contains Android-only implementations.
-  - [iosMain](./composeApp/src/iosMain/kotlin) contains iOS-only implementations.
-- [/iosApp](./iosApp/iosApp) contains the iOS entry application and SwiftUI integration layer.
 
 ## Visuals
 
@@ -63,6 +55,15 @@ building and deploying your app.
   </tr>
 </table>
 
+## Project structure
+
+- [/composeApp](./composeApp/src) is for shared and platform-specific Kotlin code:
+    - [commonMain](./composeApp/src/commonMain/kotlin) contains shared logic, UI, and app
+      architecture.
+    - [androidMain](./composeApp/src/androidMain/kotlin) contains Android-only implementations.
+    - [iosMain](./composeApp/src/iosMain/kotlin) contains iOS-only implementations.
+- [/iosApp](./iosApp/iosApp) contains the iOS entry application and SwiftUI integration layer.
+
 ## CI/CD
 
 This project includes built-in support for [GitHub Actions](https://github.com/features/actions) to
@@ -81,10 +82,22 @@ This project supports multiplatform testing with the following features:
 - Platform-specific source sets like `androidUnitTest` and `iosTest` can be added as needed when
   target-specific test cases grow.
 
-## Annotation Processing
+## Formatting
 
-This project uses [Kotlin Symbol Processing (KSP)](https://kotlinlang.org/docs/ksp-overview.html)
-for annotation processing, including Room and Metro generated code.
+This project uses [Ktlint](https://pinterest.github.io/ktlint/) for Kotlin code style and
+formatting.
+
+To format Kotlin code locally, run:
+
+```shell
+./gradlew ktlintFormat
+```
+
+To check formatting without changing files, run:
+
+```shell
+./gradlew ktlintCheck
+```
 
 ## Build and Configuration Caching
 

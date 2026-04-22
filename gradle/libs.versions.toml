@@ -9,6 +9,7 @@ androidx-lifecycle = "2.10.0"
 composeMultiplatform = "1.10.3"
 junit = "4.13.2"
 kotlin = "2.3.20"
+ktlintGradle = "14.2.0"
 material3 = "1.10.0-alpha05"
 
 kotlinx-coroutines = "1.10.2"
@@ -72,6 +73,7 @@ metro = { id = "dev.zacsweers.metro", version.ref = "metro" }
 kotlinXSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 androidx-room = { id = "androidx.room", version.ref = "room" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintGradle" }
 
 [bundles]
 ktor-common = ["ktor-client-core", "ktor-client-logging", "ktor-client-content-negotiation", "ktor-client-serialization-json"]
