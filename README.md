@@ -90,13 +90,13 @@ formatting.
 To format Kotlin code locally, run:
 
 ```shell
-./gradlew ktlintFormat
+./gradlew ktlintSourceFormat
 ```
 
 To check formatting without changing files, run:
 
 ```shell
-./gradlew ktlintCheck
+./gradlew ktlintSourceCheck
 ```
 
 ## Build and Configuration Caching

@@ -11,6 +11,22 @@ plugins {
 subprojects {
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
 
+    val sourceKtlintCheckTaskNames = listOf(
+        "runKtlintCheckOverCommonMainSourceSet",
+        "runKtlintCheckOverCommonTestSourceSet",
+        "runKtlintCheckOverAndroidMainSourceSet",
+        "runKtlintCheckOverIosMainSourceSet",
+        "runKtlintCheckOverKotlinScripts"
+    )
+
+    val sourceKtlintFormatTaskNames = listOf(
+        "runKtlintFormatOverCommonMainSourceSet",
+        "runKtlintFormatOverCommonTestSourceSet",
+        "runKtlintFormatOverAndroidMainSourceSet",
+        "runKtlintFormatOverIosMainSourceSet",
+        "runKtlintFormatOverKotlinScripts"
+    )
+
     configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
         android.set(true)
         outputToConsole.set(true)
@@ -22,5 +38,13 @@ subprojects {
             exclude("**/build/**")
             exclude("**/generated/**")
         }
+    }
+
+    tasks.register("ktlintSourceCheck") {
+        dependsOn(sourceKtlintCheckTaskNames)
+    }
+
+    tasks.register("ktlintSourceFormat") {
+        dependsOn(sourceKtlintFormatTaskNames)
     }
 }

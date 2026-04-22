@@ -36,7 +36,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Run ktlint formatting
-        run: ./gradlew ktlintFormat
+        run: ./gradlew ktlintSourceFormat
 
       - name: Verify formatting did not change files
         run: git diff --exit-code
