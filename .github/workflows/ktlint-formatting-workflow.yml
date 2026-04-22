@@ -1,5 +1,5 @@
-# Builds the Android app and runs unit tests on push + pull requests.
-name: Android build and test
+# Checks Kotlin formatting on push + pull requests.
+name: Ktlint formatting
 
 on:
   push:
@@ -9,10 +9,10 @@ on:
     types: [ "opened", "reopened", "synchronize", "ready_for_review" ]
 
 jobs:
-  build:
+  format:
     # Run this job only if the pull request is not a draft
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
-    name: Build Android app and execute unit tests
+    name: Check Kotlin formatting
     runs-on: ubuntu-latest
 
     steps:
@@ -35,15 +35,5 @@ jobs:
       - name: Grant execute permission to Gradle
         run: chmod +x ./gradlew
 
-      - name: Build Android app and run unit tests
-        run: ./gradlew test
-
-      # Upload test reports only if the test step fails
-      - name: Archive test reports
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: android-test-reports
-          path: |
-            ./**/build/reports/
-            ./**/build/test-results/
+      - name: Check ktlint formatting
+        run: ./gradlew ktlintSourceCheck

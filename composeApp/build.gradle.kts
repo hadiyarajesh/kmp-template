@@ -70,11 +70,11 @@ kotlin {
 }
 
 android {
-    namespace = "com.hadiyarajesh.kmp_template"
+    namespace = "com.hadiyarajesh.kmptemplate"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.hadiyarajesh.kmp_template"
+        applicationId = "com.hadiyarajesh.kmptemplate"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
