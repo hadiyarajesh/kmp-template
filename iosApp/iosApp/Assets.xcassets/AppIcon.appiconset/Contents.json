@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename": "kmp_logo.png",
+        "filename": "kmp_icon.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -13,6 +13,7 @@
           "value" : "dark"
         }
       ],
+        "filename": "kmp_icon 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -24,6 +25,7 @@
           "value" : "tinted"
         }
       ],
+        "filename": "kmp_icon 2.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
