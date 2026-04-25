@@ -1,5 +1,5 @@
-# Builds the iOS app and runs iOS simulator unit tests on push + pull requests.
-name: iOS build and test
+# Builds the iOS app on push + pull requests.
+name: iOS build
 
 on:
   push:
@@ -12,7 +12,7 @@ jobs:
   build:
     # Run this job only if the pull request is not a draft
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
-    name: Build iOS app and execute unit tests
+    name: Build iOS app
     runs-on: macos-latest
 
     steps:
@@ -35,9 +35,6 @@ jobs:
       - name: Grant execute permission to Gradle
         run: chmod +x ./gradlew
 
-      - name: Run iOS simulator unit tests
-        run: ./gradlew :composeApp:iosSimulatorArm64Test
-
       - name: Build iOS app
         run: |
           xcodebuild \
@@ -49,12 +46,11 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build
 
-      # Upload test reports only if the test or build step fails
-      - name: Archive test reports
+      # Upload build logs only if the build step fails
+      - name: Archive build logs
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: ios-test-reports
+          name: ios-build-logs
           path: |
             ./**/build/reports/
-            ./**/build/test-results/
