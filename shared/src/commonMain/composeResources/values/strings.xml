@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">KMP Template</string>
+    <string name="go_back">Go back</string>
+    <string name="detail">Detail</string>
+    <string name="about">About</string>
+    <string name="description">Description</string>
+    <string name="author_label">Photographer</string>
+    <string name="dimensions">%1$d x %2$d</string>
+    <string name="source">Source</string>
+    <string name="download">Download</string>
+    <string name="retry">Retry</string>
+    <string name="go_to_top">Go to top</string>
+    <string name="save_to_device">Download</string>
+    <string name="downloading">Downloading...</string>
+    <string name="image_saved_success">Image saved to your device</string>
+    <string name="download_permission_denied">Storage permission is required to save images</string>
+    <string name="go_to_settings">Open Settings</string>
+    <string name="permission_dialog_title">Allow photo access</string>
+    <string name="permission_dialog_message_settings">To save wallpapers to your device, allow photo access in Settings.</string>
+    <string name="permission_not_now">Not now</string>
+    <string name="ok">OK</string>
+    <string name="onboarding_title">Premium Wallpapers for Every Style</string>
+    <string name="onboarding_subtitle">Discover high-quality wallpapers with smooth browsing, quick previews, and a refined viewing experience across Android and iOS.</string>
+    <string name="onboarding_feature_hd_images">HD Images</string>
+    <string name="onboarding_feature_fast_feed">Fast Feed</string>
+    <string name="onboarding_feature_cross_platform">Android + iOS</string>
+    <string name="onboarding_get_started">Start Exploring</string>
+    <string name="onboarding_background_cd">Onboarding wallpaper background</string>
+    <string name="links">Links</string>
+    <string name="orientation_portrait">Portrait</string>
+    <string name="orientation_landscape">Landscape</string>
+    <string name="orientation_square">Square</string>
+</resources>

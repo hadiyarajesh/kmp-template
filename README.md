@@ -1,39 +1,16 @@
 # KMP Template
 
-This template repository provides a quick start for creating new Kotlin Multiplatform apps using
-[Compose Multiplatform](https://www.jetbrains.com/compose-multiplatform/) as the UI framework and
-targeting Android and iOS from a shared codebase.
+A starter for Kotlin Multiplatform apps that share one Compose Multiplatform UI between Android
+and iOS. It's a small, complete wallpaper app: an onboarding screen, a paged image feed, and a
+detail screen that saves images to the gallery. It's big enough to show the patterns, and small
+enough to read in an afternoon.
 
-It includes the following popular libraries:
-
-- [Ktor](https://ktor.io/) - A multiplatform HTTP client for networking.
-- [Metro](https://github.com/ZacSweers/metro) - A multiplatform, compile-time dependency injection
-  framework for Kotlin.
-- [Navigation3](https://developer.android.com/jetpack/androidx/releases/navigation3) - Multiplatform
-  navigation APIs used for the app flow.
-- [Room](https://developer.android.com/training/data-storage/room) - Cross-platform local
-  persistence for Android and iOS with a shared schema setup.
-- [AndroidX DataStore](https://developer.android.com/topic/libraries/architecture/datastore) -
-  Key-value persistence for lightweight app preferences.
-- [AndroidX Paging](https://developer.android.com/topic/libraries/architecture/paging/v3-overview) -
-  Infinite scrolling support for paged image feeds.
-- [Coil](https://github.com/coil-kt/coil) - Image loading in Compose Multiplatform.
-- [Ktlint](https://pinterest.github.io/ktlint/) - Kotlin code style checks and formatting.
-
-## How to use
-
-To use this template, simply click on the **Use this template** button at the top (or fork the
-repository) and start building your app on top of it.
-Make sure to update the package name, app identifiers, and other app-specific details before
-building and deploying your app.
-
-## Visuals
 <table>
   <tr>
-    <th>Home Screen - Android</th>
-    <th>Detail Screen - Android</th>
-    <th>Home Screen - iOS</th>
-    <th>Detail Screen - iOS</th>
+    <th>Android · Home</th>
+    <th>Android · Detail</th>
+    <th>iOS · Home</th>
+    <th>iOS · Detail</th>
   </tr>
   <tr>
     <td><img src="./assets/android_home_screen.png" width="400" /></td>
@@ -43,78 +20,111 @@ building and deploying your app.
   </tr>
 </table>
 
+## What's inside
+
+| Area           | Library                                                                                              |
+|----------------|------------------------------------------------------------------------------------------------------|
+| UI             | [Compose Multiplatform](https://www.jetbrains.com/compose-multiplatform/), Material 3                 |
+| State          | [Molecule](https://github.com/cashapp/molecule) presenters inside ViewModels                         |
+| DI             | [Metro](https://github.com/ZacSweers/metro), compile-time and multiplatform                          |
+| Navigation     | [Navigation 3](https://developer.android.com/guide/navigation/navigation-3) with serializable keys   |
+| Networking     | [Ktor](https://ktor.io/) and kotlinx.serialization                                                   |
+| Paging         | [AndroidX Paging](https://developer.android.com/topic/libraries/architecture/paging/v3-overview)      |
+| Storage        | [Room](https://developer.android.com/kotlin/multiplatform/room) and [DataStore](https://developer.android.com/kotlin/multiplatform/datastore) |
+| Images         | [Coil 3](https://github.com/coil-kt/coil)                                                            |
+| Testing        | kotlin.test, [Turbine](https://github.com/cashapp/turbine), Ktor `MockEngine`                         |
+| Code style     | [ktlint](https://pinterest.github.io/ktlint/)                                                        |
+
+Built with Kotlin 2.4, Compose Multiplatform 1.12, AGP 9.5 and Gradle 9.8.
+
+## Getting started
+
+1. Click **Use this template** (or fork the repository).
+2. Rename it for your app:
+    - The package `com.hadiyarajesh.kmptemplate` in `shared` and `androidApp`.
+    - `applicationId` and `namespace` in [androidApp/build.gradle.kts](./androidApp/build.gradle.kts),
+      and `namespace` in [shared/build.gradle.kts](./shared/build.gradle.kts).
+    - `PRODUCT_NAME` and `PRODUCT_BUNDLE_IDENTIFIER` in
+      [Config.xcconfig](./iosApp/Configuration/Config.xcconfig).
+    - `app_name` in the Android and shared `strings.xml` files.
+3. Set `TEAM_ID` in [Config.xcconfig](./iosApp/Configuration/Config.xcconfig) to run on an iOS
+   device.
+
+### Run on Android
+
+Use the `androidApp` run configuration in Android Studio, or build from the terminal:
+
+```shell
+./gradlew :androidApp:assembleDebug
+```
+
+### Run on iOS
+
+Open [iosApp/iosApp.xcodeproj](./iosApp) in Xcode and run. Xcode builds the `Shared` framework
+through Gradle as part of the build.
+
 ## Project structure
 
-- [/composeApp](./composeApp/src) is for shared and platform-specific Kotlin code:
-    - [commonMain](./composeApp/src/commonMain/kotlin) contains shared logic, UI, and app
-      architecture.
-    - [androidMain](./composeApp/src/androidMain/kotlin) contains Android-only implementations.
-    - [iosMain](./composeApp/src/iosMain/kotlin) contains iOS-only implementations.
-- [/iosApp](./iosApp/iosApp) contains the iOS entry application and SwiftUI integration layer.
+The project follows the
+[new default KMP structure](https://blog.jetbrains.com/kotlin/2026/05/new-kmp-default-structure/):
 
-## Build and Run Android Application
+- [shared](./shared/src) is a Kotlin Multiplatform library that holds all app code. Most of it is
+  in `commonMain`. `androidMain` and `iosMain` contain only what needs a platform API.
+- [androidApp](./androidApp/src/main) is the Android application: activity, `Application`
+  class, manifest and launcher icons.
+- [iosApp](./iosApp/iosApp) is the SwiftUI app that hosts the shared UI.
 
-To build and run the development version of the Android app, use the run configuration from the run
-widget in your IDE’s toolbar or build it directly from the terminal:
+## Architecture
 
-```shell
-./gradlew :composeApp:assembleDebug
-```
+- Each screen has a ViewModel interface with an `internal` implementation.
+- State is built by a
+[Molecule](https://github.com/cashapp/molecule) presenter, and one-shot events such as snackbars come through their own flows.
+- [Metro](https://github.com/zacsweers/metro) wires dependencies through annotations.
+- [Navigation 3](https://kotlinlang.org/docs/multiplatform/compose-navigation-3.html) scopes each ViewModel to its back stack entry.
 
-## Build and Run iOS Application
+[ARCHITECTURE.md](./ARCHITECTURE.md) explains each piece, the reasoning behind it, and how to add
+a screen.
 
-To build and run the development version of the iOS app, use the run configuration from the run
-widget
-in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+## Testing
 
-## Unit Testing
-
-This project supports multiplatform testing with the following features:
-
-- Common Kotlin tests in `commonTest` (for example, utility and PagingSource behavior tests).
-- Android host test execution via Gradle (`./gradlew :composeApp:testDebugUnitTest`).
-- iOS simulator test execution via Gradle (`./gradlew :composeApp:iosSimulatorArm64Test`) for shared
-  `commonTest` coverage.
-- Platform-specific source sets like `androidUnitTest` and `iosTest` can be added as needed.
-
-## Formatting
-
-This project uses [Ktlint](https://github.com/pinterest/ktlint) for Kotlin code style and formatting.
-
-To format Kotlin code, run:
+Shared tests live in [shared/src/commonTest](./shared/src/commonTest) and cover the ViewModels,
+the API client, paging, the repository and the download flow. They run on both platforms:
 
 ```shell
-./gradlew ktlintSourceFormat
+./gradlew :shared:testAndroidHostTest
+./gradlew :shared:iosSimulatorArm64Test
 ```
 
-To check formatting without changing files, run:
+## Code style
 
 ```shell
-./gradlew ktlintSourceCheck
+./gradlew ktlintFormat   # fix formatting
+./gradlew ktlintCheck    # check only, as CI does
 ```
 
-## CI/CD
+## Release builds
 
-This project includes built-in support for [GitHub Actions](https://github.com/features/actions) to
-automate builds, run tests, and ensure code quality.
-CI/CD workflows can be found in the `.github/workflows/` directory and can be customized based on
-your needs.
+Android release builds run R8 with code and resource shrinking. Keep rules for Room, Ktor and
+kotlinx.serialization are in [proguard-rules.pro](./androidApp/proguard-rules.pro). Metro needs
+none, because it generates its graphs at compile time. After adding a library that uses
+reflection, test a release build on a device.
 
-## Build and Configuration Caching
+## CI
 
-This project also takes advantage of
-Gradle's [Build Cache](https://docs.gradle.org/current/userguide/build_cache.html)
-and [Configuration Cache](https://docs.gradle.org/current/userguide/configuration_cache.html)
-features to speed up builds and reduce build times.
-Note that these features may not always provide significant improvements in build times depending on
-the project structure and build complexity.
+GitHub Actions workflows in [.github/workflows](./.github/workflows) check formatting, build the
+Android debug and release apps, run lint and the shared tests, and build the iOS app.
+[Dependabot](./.github/dependabot.yml) opens weekly dependency updates, grouping Kotlin, KSP and
+Compose so they move together.
 
-## Contribution
+## Working with AI agents
 
-Contributions to this project are welcome! If you encounter any problems or have suggestions for
-improvement, feel free to submit a pull request or open an issue.
+[AGENTS.md](./AGENTS.md) gives coding agents the project's commands, rules and known pitfalls.
+`CLAUDE.md` imports it for Claude Code.
+
+## Contributing
+
+Issues and pull requests are welcome.
 
 ## License
 
-This project is licensed under
-the [MIT License](https://github.com/hadiyarajesh/kmp-template/blob/main/LICENSE).
+[MIT](./LICENSE)

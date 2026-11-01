@@ -1,0 +1,31 @@
+package com.hadiyarajesh.kmptemplate.di
+
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import com.hadiyarajesh.kmptemplate.data.database.AppDatabase
+import com.hadiyarajesh.kmptemplate.data.database.createDatabase
+import com.hadiyarajesh.kmptemplate.data.database.getDatabaseBuilderForAndroid
+import com.hadiyarajesh.kmptemplate.data.datastore.createDataStoreForAndroid
+import dev.zacsweers.metro.DependencyGraph
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
+
+@SingleIn(AppScope::class)
+@DependencyGraph(AppScope::class)
+internal interface AndroidAppGraph : CommonAppGraph {
+    @DependencyGraph.Factory
+    fun interface Factory {
+        fun create(@Provides context: Context): AndroidAppGraph
+    }
+
+    @Provides
+    @SingleIn(AppScope::class)
+    fun provideDataStore(context: Context): DataStore<Preferences> =
+        createDataStoreForAndroid(context)
+
+    @Provides
+    @SingleIn(AppScope::class)
+    fun provideDatabase(context: Context): AppDatabase =
+        createDatabase(getDatabaseBuilderForAndroid(context))
+}

@@ -1,0 +1,27 @@
+version: 2
+updates:
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      # KSP and the Compose compiler plugin must move together with Kotlin.
+      kotlin:
+        patterns:
+          - "org.jetbrains.kotlin*"
+          - "com.google.devtools.ksp*"
+      compose-multiplatform:
+        patterns:
+          - "org.jetbrains.compose*"
+      androidx:
+        patterns:
+          - "androidx*"
+          - "org.jetbrains.androidx*"
+      ktor:
+        patterns:
+          - "io.ktor*"
+    open-pull-requests-limit: 10
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
