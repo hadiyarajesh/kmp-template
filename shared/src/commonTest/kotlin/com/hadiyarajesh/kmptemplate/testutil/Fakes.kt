@@ -9,6 +9,7 @@ import com.hadiyarajesh.kmptemplate.data.network.AppHttpClient
 import com.hadiyarajesh.kmptemplate.data.repository.ImageRepository
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.MockRequestHandler
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
@@ -37,7 +38,11 @@ internal class FakeImageDao : ImageDao {
     }
 }
 
-internal class FakeImageSaver(var result: ImageSaveResult = ImageSaveResult.Success) : ImageSaver {
+/** Returns [result]. If [release] is set, saving waits for it, so a test can see a save in flight. */
+internal class FakeImageSaver(
+    var result: ImageSaveResult = ImageSaveResult.Success,
+    private val release: CompletableDeferred<Unit>? = null
+) : ImageSaver {
     val savedFileNames = mutableListOf<String>()
 
     override suspend fun saveImage(
@@ -45,6 +50,7 @@ internal class FakeImageSaver(var result: ImageSaveResult = ImageSaveResult.Succ
         fileName: String,
         sourceUrl: String
     ): ImageSaveResult {
+        release?.await()
         savedFileNames += fileName
         return result
     }

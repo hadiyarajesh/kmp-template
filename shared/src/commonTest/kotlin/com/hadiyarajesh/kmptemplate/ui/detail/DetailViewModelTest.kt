@@ -16,6 +16,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -37,16 +38,18 @@ internal class DetailViewModelTest {
     private val repository = FakeImageRepository()
     private val viewModels = TestViewModelStore()
 
-    private fun viewModel(saverResult: ImageSaveResult = ImageSaveResult.Success): DetailViewModel =
-        viewModels.add(
-            DetailViewModelImpl(
-                ImageDownloadManager(
-                    mockHttpClient { respond(byteArrayOf(1)) },
-                    FakeImageSaver(saverResult)
-                ),
-                repository
-            )
+    private fun viewModel(
+        saverResult: ImageSaveResult = ImageSaveResult.Success,
+        saveRelease: CompletableDeferred<Unit>? = null
+    ): DetailViewModel = viewModels.add(
+        DetailViewModelImpl(
+            ImageDownloadManager(
+                mockHttpClient { respond(byteArrayOf(1)) },
+                FakeImageSaver(saverResult, saveRelease)
+            ),
+            repository
         )
+    )
 
     @Test
     fun startsIdle() = runTest {
@@ -58,7 +61,10 @@ internal class DetailViewModelTest {
     // The download runs on Ktor's own dispatcher, so collectors wait in wall-clock time.
     @Test
     fun successfulDownloadTogglesLoadingAndEmitsSucceeded() = runTest {
-        val viewModel = viewModel()
+        // Holding the save open keeps isDownloading true long enough to observe; StateFlow
+        // would otherwise conflate a fast true -> false away.
+        val saveRelease = CompletableDeferred<Unit>()
+        val viewModel = viewModel(saveRelease = saveRelease)
 
         turbineScope {
             val states = viewModel.uiState.testIn(backgroundScope)
@@ -69,6 +75,7 @@ internal class DetailViewModelTest {
             viewModel.download()
 
             assertTrue(states.awaitItem().isDownloading)
+            saveRelease.complete(Unit)
             assertFalse(states.awaitItem().isDownloading)
             assertEquals(DownloadEvent.Succeeded, events.awaitItem())
         }
