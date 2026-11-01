@@ -10,3 +10,7 @@ internal sealed interface HomeScreenUiState {
     data class Success(val images: Flow<PagingData<Image>>) : HomeScreenUiState
     data class Error(val msg: String) : HomeScreenUiState
 }
+
+internal sealed interface HomeAction {
+    data object Start : HomeAction
+}

@@ -19,7 +19,6 @@ import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 /** What the app root depends on. */
@@ -31,15 +30,6 @@ internal interface OnboardingViewModel {
     fun completeOnboarding()
 }
 
-/** Returns the [OnboardingViewModel] scoped to the current ViewModelStoreOwner. */
-@Composable
-internal fun onboardingViewModel(): OnboardingViewModel = metroViewModel<OnboardingViewModelImpl>()
-
-private sealed interface OnboardingAction {
-    data object Start : OnboardingAction
-    data object Complete : OnboardingAction
-}
-
 @Inject
 @ViewModelKey
 @ContributesIntoMap(AppScope::class, binding = binding<ViewModel>())
@@ -47,9 +37,6 @@ internal class OnboardingViewModelImpl(private val dataStoreManager: DataStoreMa
     ViewModel(),
     OnboardingViewModel {
     private val actions = Channel<OnboardingAction>(Channel.UNLIMITED)
-
-    // Created once: a new Flow per recomposition would restart the presenter's LaunchedEffect.
-    private val actionFlow = actions.receiveAsFlow()
 
     override val shouldShowOnboarding: StateFlow<Boolean?> = viewModelScope.launchMolecule(
         mode = RecompositionMode.Immediate
@@ -72,7 +59,7 @@ internal class OnboardingViewModelImpl(private val dataStoreManager: DataStoreMa
         var started by remember { mutableStateOf(false) }
 
         LaunchedEffect(Unit) {
-            actionFlow.collect { action ->
+            for (action in actions) {
                 when (action) {
                     OnboardingAction.Start -> started = true
                     OnboardingAction.Complete -> launch { dataStoreManager.markOnboardingSeen() }
@@ -89,3 +76,7 @@ internal class OnboardingViewModelImpl(private val dataStoreManager: DataStoreMa
         return shouldShow
     }
 }
+
+/** Returns the [OnboardingViewModel] scoped to the current ViewModelStoreOwner. */
+@Composable
+internal fun onboardingViewModel(): OnboardingViewModel = metroViewModel<OnboardingViewModelImpl>()

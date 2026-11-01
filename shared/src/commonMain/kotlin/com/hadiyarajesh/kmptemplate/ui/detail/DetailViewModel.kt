@@ -22,7 +22,6 @@ import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 /** What the detail screen depends on. */
@@ -36,17 +35,6 @@ internal interface DetailViewModel {
     fun onEventConsumed()
 }
 
-/** Returns the [DetailViewModel] scoped to the current navigation entry. */
-@Composable
-internal fun detailViewModel(): DetailViewModel = metroViewModel<DetailViewModelImpl>()
-
-private sealed interface DetailAction {
-    data class Start(val image: Image) : DetailAction
-    data object Download : DetailAction
-    data object PermissionDenied : DetailAction
-    data object EventConsumed : DetailAction
-}
-
 @Inject
 @ViewModelKey
 @ContributesIntoMap(AppScope::class, binding = binding<ViewModel>())
@@ -56,9 +44,6 @@ internal class DetailViewModelImpl(
 ) : ViewModel(),
     DetailViewModel {
     private val actions = Channel<DetailAction>(Channel.UNLIMITED)
-
-    // Created once: a new Flow per recomposition would restart the presenter's LaunchedEffect.
-    private val actionFlow = actions.receiveAsFlow()
 
     override val uiState: StateFlow<DetailUiState> = viewModelScope.launchMolecule(
         mode = RecompositionMode.Immediate
@@ -90,7 +75,7 @@ internal class DetailViewModelImpl(
         var event by remember { mutableStateOf<DownloadEvent?>(null) }
 
         LaunchedEffect(Unit) {
-            actionFlow.collect { action ->
+            for (action in actions) {
                 when (action) {
                     is DetailAction.Start -> {
                         image = action.image
@@ -124,3 +109,7 @@ internal class DetailViewModelImpl(
             is ImageSaveResult.Error -> DownloadEvent.Error(result.message)
         }
 }
+
+/** Returns the [DetailViewModel] scoped to the current navigation entry. */
+@Composable
+internal fun detailViewModel(): DetailViewModel = metroViewModel<DetailViewModelImpl>()

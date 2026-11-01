@@ -20,21 +20,12 @@ import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 
 /** What the home screen depends on. */
 internal interface HomeViewModel {
     val uiState: StateFlow<HomeScreenUiState>
 
     fun start()
-}
-
-/** Returns the [HomeViewModel] scoped to the current navigation entry. */
-@Composable
-internal fun homeViewModel(): HomeViewModel = metroViewModel<HomeViewModelImpl>()
-
-private sealed interface HomeAction {
-    data object Start : HomeAction
 }
 
 @Inject
@@ -44,9 +35,6 @@ internal class HomeViewModelImpl(private val imageRepository: ImageRepository) :
     ViewModel(),
     HomeViewModel {
     private val actions = Channel<HomeAction>(Channel.UNLIMITED)
-
-    // Created once: a new Flow per recomposition would restart the presenter's LaunchedEffect.
-    private val actionFlow = actions.receiveAsFlow()
 
     override val uiState: StateFlow<HomeScreenUiState> = viewModelScope.launchMolecule(
         mode = RecompositionMode.Immediate
@@ -64,7 +52,7 @@ internal class HomeViewModelImpl(private val imageRepository: ImageRepository) :
         var state: HomeScreenUiState by remember { mutableStateOf(HomeScreenUiState.Initial) }
 
         LaunchedEffect(Unit) {
-            actionFlow.collect { action ->
+            for (action in actions) {
                 when (action) {
                     HomeAction.Start -> if (state !is HomeScreenUiState.Success) {
                         state = HomeScreenUiState.Loading
@@ -83,3 +71,7 @@ internal class HomeViewModelImpl(private val imageRepository: ImageRepository) :
         return state
     }
 }
+
+/** Returns the [HomeViewModel] scoped to the current navigation entry. */
+@Composable
+internal fun homeViewModel(): HomeViewModel = metroViewModel<HomeViewModelImpl>()
