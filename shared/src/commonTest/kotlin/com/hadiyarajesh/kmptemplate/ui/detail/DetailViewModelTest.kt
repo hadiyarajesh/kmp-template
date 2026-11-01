@@ -6,6 +6,7 @@ import com.hadiyarajesh.kmptemplate.data.download.ImageDownloadManager
 import com.hadiyarajesh.kmptemplate.data.download.ImageSaveResult
 import com.hadiyarajesh.kmptemplate.testutil.FakeImageRepository
 import com.hadiyarajesh.kmptemplate.testutil.FakeImageSaver
+import com.hadiyarajesh.kmptemplate.testutil.TestViewModelStore
 import com.hadiyarajesh.kmptemplate.testutil.mockHttpClient
 import com.hadiyarajesh.kmptemplate.testutil.testImage
 import io.ktor.client.engine.mock.respond
@@ -28,17 +29,23 @@ internal class DetailViewModelTest {
     fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
 
     @AfterTest
-    fun tearDown() = Dispatchers.resetMain()
+    fun tearDown() {
+        viewModels.clear()
+        Dispatchers.resetMain()
+    }
 
     private val repository = FakeImageRepository()
+    private val viewModels = TestViewModelStore()
 
     private fun viewModel(saverResult: ImageSaveResult = ImageSaveResult.Success): DetailViewModel =
-        DetailViewModelImpl(
-            ImageDownloadManager(
-                mockHttpClient { respond(byteArrayOf(1)) },
-                FakeImageSaver(saverResult)
-            ),
-            repository
+        viewModels.add(
+            DetailViewModelImpl(
+                ImageDownloadManager(
+                    mockHttpClient { respond(byteArrayOf(1)) },
+                    FakeImageSaver(saverResult)
+                ),
+                repository
+            )
         )
 
     @Test

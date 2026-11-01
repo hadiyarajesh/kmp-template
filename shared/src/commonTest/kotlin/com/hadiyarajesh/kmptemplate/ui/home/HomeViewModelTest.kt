@@ -2,6 +2,7 @@ package com.hadiyarajesh.kmptemplate.ui.home
 
 import app.cash.turbine.test
 import com.hadiyarajesh.kmptemplate.testutil.FakeImageRepository
+import com.hadiyarajesh.kmptemplate.testutil.TestViewModelStore
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -17,23 +18,29 @@ import kotlinx.coroutines.test.setMain
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class HomeViewModelTest {
     private val repository = FakeImageRepository()
+    private val viewModels = TestViewModelStore()
 
     @BeforeTest
     fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
 
     @AfterTest
-    fun tearDown() = Dispatchers.resetMain()
+    fun tearDown() {
+        viewModels.clear()
+        Dispatchers.resetMain()
+    }
+
+    private fun viewModel(): HomeViewModel = viewModels.add(HomeViewModelImpl(repository))
 
     @Test
     fun startsInInitialState() = runTest {
-        HomeViewModelImpl(repository).uiState.test {
+        viewModel().uiState.test {
             assertEquals(HomeScreenUiState.Initial, awaitItem())
         }
     }
 
     @Test
     fun startEmitsSuccess() = runTest {
-        val viewModel = HomeViewModelImpl(repository)
+        val viewModel = viewModel()
 
         viewModel.uiState.test {
             assertEquals(HomeScreenUiState.Initial, awaitItem())
@@ -46,7 +53,7 @@ internal class HomeViewModelTest {
 
     @Test
     fun startKeepsExistingSuccessState() = runTest {
-        val viewModel = HomeViewModelImpl(repository)
+        val viewModel = viewModel()
 
         viewModel.uiState.test {
             awaitItem()
@@ -63,7 +70,7 @@ internal class HomeViewModelTest {
     @Test
     fun startEmitsErrorWhenRepositoryThrows() = runTest {
         repository.getImagesError = IllegalStateException("boom")
-        val viewModel = HomeViewModelImpl(repository)
+        val viewModel = viewModel()
 
         viewModel.uiState.test {
             awaitItem()
