@@ -35,8 +35,6 @@ enough to read in an afternoon.
 | Testing        | kotlin.test, [Turbine](https://github.com/cashapp/turbine), Ktor `MockEngine`                         |
 | Code style     | [ktlint](https://pinterest.github.io/ktlint/)                                                        |
 
-Built with Kotlin 2.4, Compose Multiplatform 1.12, AGP 9.5 and Gradle 9.8.
-
 ## Getting started
 
 1. Click **Use this template** (or fork the repository).
