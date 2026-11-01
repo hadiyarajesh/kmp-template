@@ -76,10 +76,11 @@ The project follows the
 
 ## Architecture
 
-Each screen has a ViewModel interface with an `internal` implementation. State is built by a
-Molecule presenter, and one-shot events such as snackbars come through their own flows. Metro
-wires everything through annotations, and Navigation 3 scopes each ViewModel to its back stack
-entry.
+- Each screen has a ViewModel interface with an `internal` implementation.
+- State is built by a
+[Molecule](https://github.com/cashapp/molecule) presenter, and one-shot events such as snackbars come through their own flows.
+- [Metro](https://github.com/zacsweers/metro) wires dependencies through annotations.
+- [Navigation 3](https://kotlinlang.org/docs/multiplatform/compose-navigation-3.html) scopes each ViewModel to its back stack entry.
 
 [ARCHITECTURE.md](./ARCHITECTURE.md) explains each piece, the reasoning behind it, and how to add
 a screen.
