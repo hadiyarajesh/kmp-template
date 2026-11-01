@@ -14,7 +14,7 @@ import kotlinx.coroutines.withContext
 
 @Inject
 @ContributesBinding(AppScope::class)
-class AndroidImageSaver(private val context: Context) : ImageSaver {
+internal class AndroidImageSaver(private val context: Context) : ImageSaver {
     override suspend fun saveImage(
         bytes: ByteArray,
         fileName: String,

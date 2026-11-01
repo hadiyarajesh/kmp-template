@@ -52,7 +52,8 @@ namespaces in `androidApp` and `shared`, the iOS bundle ID in `Config.xcconfig`,
 The project follows the [new default KMP structure](https://blog.jetbrains.com/kotlin/2026/05/new-kmp-default-structure/):
 platform entry points are thin apps and all code lives in one shared library module.
 
-- [/shared](./shared/src) is a Kotlin Multiplatform library with all app code:
+- [/shared](./shared/src) is a Kotlin Multiplatform library with all app code, split into `ui`,
+  `data` (database, datastore, network, repository, download), `di` and `navigation`:
     - [commonMain](./shared/src/commonMain/kotlin) contains shared logic, UI, and app
       architecture.
     - [androidMain](./shared/src/androidMain/kotlin) contains Android-only implementations. It uses
@@ -66,14 +67,22 @@ platform entry points are thin apps and all code lives in one shared library mod
 
 ## Architecture
 
-Each screen is two files plus the UI:
+Each screen is three files:
 
 ```text
 ui/home/
-  HomeScreen.kt      UI, depends only on the HomeViewModel interface
-  HomeViewModel.kt   interface + HomeViewModelImpl (DI annotations, Molecule, presenter function)
-  HomeModels.kt      HomeScreenUiState and HomeEvent
+  HomeScreen.kt          UI, depends only on the HomeViewModel interface
+  HomeViewModel.kt       interface + HomeViewModelImpl (DI annotations, Molecule, present())
+  HomeScreenUiState.kt   state types the UI renders
 ```
+
+Every ViewModel exposes `start()`, which the screen calls once from a `LaunchedEffect`. Anything a
+screen needs at start-up is passed there (for example `DetailViewModel.start(image)` records the
+selected image), so screens never reach into repositories.
+
+Visibility is kept minimal and enforced with Kotlin's explicit API mode: everything in `shared` is
+`internal` except `App`, `CommonAppGraph` and the platform entry points. Event and action types
+used only by one ViewModel are `private` in its file.
 
 - **State** lives in the implementation's `present()` function, a `@Composable` that turns events
   into UI state. `uiState` is the `StateFlow` that `launchMolecule` returns, so

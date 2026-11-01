@@ -19,7 +19,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun AppTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
+internal fun AppTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
         typography = Typography,

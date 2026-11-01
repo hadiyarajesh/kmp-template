@@ -30,7 +30,7 @@ import platform.posix.write
 @Inject
 @ContributesBinding(AppScope::class)
 @OptIn(ExperimentalForeignApi::class)
-class IosImageSaver : ImageSaver {
+internal class IosImageSaver : ImageSaver {
     override suspend fun saveImage(
         bytes: ByteArray,
         fileName: String,

@@ -13,6 +13,7 @@ import app.cash.molecule.launchMolecule
 import com.hadiyarajesh.kmptemplate.data.database.entity.Image
 import com.hadiyarajesh.kmptemplate.data.download.ImageDownloadManager
 import com.hadiyarajesh.kmptemplate.data.download.ImageSaveResult
+import com.hadiyarajesh.kmptemplate.data.repository.ImageRepository
 import com.hadiyarajesh.kmptemplate.di.AppScope
 import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metro.Inject
@@ -23,11 +24,20 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
+private sealed interface DetailAction {
+    data class Start(val image: Image) : DetailAction
+    data object Download : DetailAction
+    data object PermissionDenied : DetailAction
+    data object EventConsumed : DetailAction
+}
+
 /** What the detail screen depends on. */
-interface DetailViewModel {
+internal interface DetailViewModel {
     val uiState: StateFlow<DetailUiState>
 
-    fun downloadImage(image: Image)
+    /** Records [image] as the selected image. [download] acts on it. */
+    fun start(image: Image)
+    fun download()
     fun notifyPermissionDenied()
     fun onEventConsumed()
 }
@@ -35,8 +45,10 @@ interface DetailViewModel {
 @Inject
 @ViewModelKey
 @ContributesIntoMap(AppScope::class, binding = binding<ViewModel>())
-internal class DetailViewModelImpl(private val imageDownloadManager: ImageDownloadManager) :
-    ViewModel(),
+internal class DetailViewModelImpl(
+    private val imageDownloadManager: ImageDownloadManager,
+    private val imageRepository: ImageRepository
+) : ViewModel(),
     DetailViewModel {
     private val actions = Channel<DetailAction>(Channel.UNLIMITED)
 
@@ -49,8 +61,12 @@ internal class DetailViewModelImpl(private val imageDownloadManager: ImageDownlo
         present()
     }
 
-    override fun downloadImage(image: Image) {
-        actions.trySend(DetailAction.Download(image))
+    override fun start(image: Image) {
+        actions.trySend(DetailAction.Start(image))
+    }
+
+    override fun download() {
+        actions.trySend(DetailAction.Download)
     }
 
     override fun notifyPermissionDenied() {
@@ -64,23 +80,26 @@ internal class DetailViewModelImpl(private val imageDownloadManager: ImageDownlo
     /** All state lives here: actions in, [DetailUiState] out. */
     @Composable
     private fun present(): DetailUiState {
+        var image by remember { mutableStateOf<Image?>(null) }
         var isDownloading by remember { mutableStateOf(false) }
         var event by remember { mutableStateOf<DownloadEvent?>(null) }
 
         LaunchedEffect(Unit) {
             actionFlow.collect { action ->
                 when (action) {
-                    is DetailAction.Download -> if (!isDownloading) {
-                        isDownloading = true
-                        launch {
-                            event = when (
-                                val result = imageDownloadManager.downloadAndSave(action.image)
-                            ) {
-                                ImageSaveResult.Success -> DownloadEvent.Success
-                                ImageSaveResult.PermissionDenied -> DownloadEvent.PermissionDenied
-                                is ImageSaveResult.Error -> DownloadEvent.Error(result.message)
+                    is DetailAction.Start -> {
+                        image = action.image
+                        launch { imageRepository.saveSelectedImage(action.image) }
+                    }
+
+                    DetailAction.Download -> {
+                        val selected = image
+                        if (selected != null && !isDownloading) {
+                            isDownloading = true
+                            launch {
+                                event = download(selected)
+                                isDownloading = false
                             }
-                            isDownloading = false
                         }
                     }
 
@@ -92,4 +111,11 @@ internal class DetailViewModelImpl(private val imageDownloadManager: ImageDownlo
 
         return DetailUiState(isDownloading = isDownloading, event = event)
     }
+
+    private suspend fun download(image: Image): DownloadEvent =
+        when (val result = imageDownloadManager.downloadAndSave(image)) {
+            ImageSaveResult.Success -> DownloadEvent.Success
+            ImageSaveResult.PermissionDenied -> DownloadEvent.PermissionDenied
+            is ImageSaveResult.Error -> DownloadEvent.Error(result.message)
+        }
 }

@@ -1,7 +1,9 @@
-package com.hadiyarajesh.kmptemplate.datastore
+package com.hadiyarajesh.kmptemplate.data.database
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import com.hadiyarajesh.kmptemplate.data.database.AppDatabase
+import com.hadiyarajesh.kmptemplate.data.database.DATABASE_FILE_NAME
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
@@ -9,7 +11,7 @@ import platform.Foundation.NSURL
 import platform.Foundation.NSUserDomainMask
 
 @OptIn(ExperimentalForeignApi::class)
-fun createDataStoreForIos(): DataStore<Preferences> = createDataStore {
+internal fun getDatabaseBuilderForIos(): RoomDatabase.Builder<AppDatabase> {
     val documentDirectory: NSURL? = NSFileManager.defaultManager.URLForDirectory(
         directory = NSDocumentDirectory,
         inDomain = NSUserDomainMask,
@@ -17,5 +19,8 @@ fun createDataStoreForIos(): DataStore<Preferences> = createDataStore {
         create = false,
         error = null
     )
-    requireNotNull(documentDirectory?.path) + "/$DATA_STORE_FILE_NAME"
+
+    return Room.databaseBuilder<AppDatabase>(
+        name = requireNotNull(documentDirectory?.path) + "/$DATABASE_FILE_NAME"
+    )
 }

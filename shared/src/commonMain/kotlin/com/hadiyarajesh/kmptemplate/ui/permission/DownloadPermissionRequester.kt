@@ -2,7 +2,7 @@ package com.hadiyarajesh.kmptemplate.ui.permission
 
 import androidx.compose.runtime.Composable
 
-interface DownloadPermissionRequester {
+internal interface DownloadPermissionRequester {
     fun hasRequiredPermission(): Boolean
     fun requestPermission()
     fun canOpenSettings(): Boolean = false
@@ -10,6 +10,6 @@ interface DownloadPermissionRequester {
 }
 
 @Composable
-expect fun rememberDownloadPermissionRequester(
+internal expect fun rememberDownloadPermissionRequester(
     onResult: (Boolean) -> Unit
 ): DownloadPermissionRequester

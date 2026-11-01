@@ -12,6 +12,12 @@ plugins {
 }
 
 kotlin {
+    // Everything is internal unless it must be public: App, CommonAppGraph and platform entry points.
+    explicitApi()
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
     android {
         namespace = "com.hadiyarajesh.kmptemplate.shared"
         compileSdk = libs.versions.android.compileSdk.get().toInt()

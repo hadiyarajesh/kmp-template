@@ -1,13 +1,13 @@
 package com.hadiyarajesh.kmptemplate.data.download
 
 import com.hadiyarajesh.kmptemplate.data.database.entity.Image
-import com.hadiyarajesh.kmptemplate.network.AppHttpClient
+import com.hadiyarajesh.kmptemplate.data.network.AppHttpClient
 import dev.zacsweers.metro.Inject
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 
 @Inject
-class ImageDownloadManager(
+internal class ImageDownloadManager(
     private val appHttpClient: AppHttpClient,
     private val imageSaver: ImageSaver
 ) {

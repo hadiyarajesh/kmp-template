@@ -1,4 +1,4 @@
-package com.hadiyarajesh.kmptemplate.network
+package com.hadiyarajesh.kmptemplate.data.network
 
 import com.hadiyarajesh.kmptemplate.data.database.entity.Image
 import com.hadiyarajesh.kmptemplate.di.AppScope
@@ -10,13 +10,13 @@ import io.ktor.client.request.parameter
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-interface PicsumApi {
+internal interface PicsumApi {
     suspend fun getImageList(page: Int, limit: Int): PicsumPage
 }
 
 @Inject
 @ContributesBinding(AppScope::class)
-class PicsumApiImpl(private val appHttpClient: AppHttpClient) : PicsumApi {
+internal class PicsumApiImpl(private val appHttpClient: AppHttpClient) : PicsumApi {
     override suspend fun getImageList(page: Int, limit: Int): PicsumPage {
         val response = appHttpClient.client.get("v2/list") {
             parameter("page", page)
@@ -30,7 +30,7 @@ class PicsumApiImpl(private val appHttpClient: AppHttpClient) : PicsumApi {
     }
 }
 
-data class PicsumPage(val images: List<Image>, val hasNextPage: Boolean)
+internal data class PicsumPage(val images: List<Image>, val hasNextPage: Boolean)
 
 @Serializable
 private data class PicsumImageResponse(
@@ -49,7 +49,6 @@ private data class PicsumImageResponse(
         height = height,
         sourceUrl = url,
         downloadUrl = downloadUrl,
-        description = "Photo by $author",
-        altText = "Failed to load image"
+        description = "Photo by $author"
     )
 }

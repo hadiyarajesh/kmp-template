@@ -14,7 +14,7 @@ import com.hadiyarajesh.kmptemplate.data.database.entity.Image
     exportSchema = true
 )
 @ConstructedBy(AppDatabaseConstructor::class)
-abstract class AppDatabase : RoomDatabase() {
+internal abstract class AppDatabase : RoomDatabase() {
     abstract fun imageDao(): ImageDao
 }
 
@@ -22,12 +22,12 @@ abstract class AppDatabase : RoomDatabase() {
  * The actual implementation of this constructor is not defined in common code.
  * It will be provided by Room for each platform (e.g., Android, iOS).
  */
-expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {
+internal expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {
     override fun initialize(): AppDatabase
 }
 
-fun createDatabase(builder: RoomDatabase.Builder<AppDatabase>): AppDatabase = builder
+internal fun createDatabase(builder: RoomDatabase.Builder<AppDatabase>): AppDatabase = builder
     .setDriver(BundledSQLiteDriver())
     .build()
 
-const val DATABASE_FILE_NAME = "kmptemplate.db"
+internal const val DATABASE_FILE_NAME = "kmptemplate.db"

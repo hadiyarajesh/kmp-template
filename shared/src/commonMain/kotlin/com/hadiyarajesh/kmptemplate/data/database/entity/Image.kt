@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @Entity(tableName = "images")
-data class Image(
+internal data class Image(
     @PrimaryKey
     val imageId: String,
     val author: String,
@@ -15,8 +15,7 @@ data class Image(
     val height: Int,
     val sourceUrl: String,
     val downloadUrl: String,
-    val description: String,
-    val altText: String
+    val description: String
 ) {
     fun thumbnailUrl(targetWidth: Int = 500, targetHeight: Int = 750): String =
         "https://picsum.photos/id/$imageId/$targetWidth/$targetHeight"

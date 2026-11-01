@@ -12,7 +12,7 @@ import kotlin.reflect.KClass
 @Inject
 @ContributesBinding(AppScope::class)
 @SingleIn(AppScope::class)
-class AppViewModelFactory(
+internal class AppViewModelFactory(
     override val viewModelProviders: Map<KClass<out ViewModel>, () -> ViewModel>,
     override val assistedFactoryProviders:
     Map<KClass<out ViewModel>, () -> ViewModelAssistedFactory>,

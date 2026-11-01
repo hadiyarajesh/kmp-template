@@ -1,4 +1,4 @@
-package com.hadiyarajesh.kmptemplate.datastore
+package com.hadiyarajesh.kmptemplate.data.datastore
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
@@ -7,7 +7,7 @@ import okio.Path.Companion.toPath
 
 internal const val DATA_STORE_FILE_NAME = "kmptemplate.preferences_pb"
 
-fun createDataStore(producePath: () -> String): DataStore<Preferences> =
+internal fun createDataStore(producePath: () -> String): DataStore<Preferences> =
     PreferenceDataStoreFactory.createWithPath(
         produceFile = { producePath().toPath() }
     )

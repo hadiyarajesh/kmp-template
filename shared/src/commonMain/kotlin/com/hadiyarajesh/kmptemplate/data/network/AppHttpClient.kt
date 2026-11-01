@@ -1,4 +1,4 @@
-package com.hadiyarajesh.kmptemplate.network
+package com.hadiyarajesh.kmptemplate.data.network
 
 import com.hadiyarajesh.kmptemplate.di.AppScope
 import dev.zacsweers.metro.Inject
@@ -24,7 +24,7 @@ private val NetworkJson = Json {
 }
 
 @SingleIn(AppScope::class)
-class AppHttpClient private constructor(val client: HttpClient) {
+internal class AppHttpClient private constructor(val client: HttpClient) {
     @Inject
     constructor() : this(createHttpClient())
 

@@ -10,7 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 
 @Composable
-actual fun rememberDownloadPermissionRequester(
+internal actual fun rememberDownloadPermissionRequester(
     onResult: (Boolean) -> Unit
 ): DownloadPermissionRequester {
     val context = LocalContext.current

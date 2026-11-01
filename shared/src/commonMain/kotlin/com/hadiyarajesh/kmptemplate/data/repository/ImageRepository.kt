@@ -5,8 +5,8 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.hadiyarajesh.kmptemplate.data.database.dao.ImageDao
 import com.hadiyarajesh.kmptemplate.data.database.entity.Image
+import com.hadiyarajesh.kmptemplate.data.network.PicsumApi
 import com.hadiyarajesh.kmptemplate.di.AppScope
-import com.hadiyarajesh.kmptemplate.network.PicsumApi
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.Flow
 
 private const val IMAGE_PAGE_SIZE = 30
 
-interface HomeRepository {
+internal interface ImageRepository {
     fun getImages(): Flow<PagingData<Image>>
     suspend fun saveSelectedImage(image: Image)
 }
@@ -22,8 +22,10 @@ interface HomeRepository {
 @Inject
 @ContributesBinding(AppScope::class)
 @SingleIn(AppScope::class)
-class HomeRepositoryImpl(private val picsumApi: PicsumApi, private val imageDao: ImageDao) :
-    HomeRepository {
+internal class ImageRepositoryImpl(
+    private val picsumApi: PicsumApi,
+    private val imageDao: ImageDao
+) : ImageRepository {
     override fun getImages(): Flow<PagingData<Image>> = Pager(
         config = PagingConfig(
             pageSize = IMAGE_PAGE_SIZE,

@@ -3,11 +3,11 @@ package com.hadiyarajesh.kmptemplate.data.repository
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.hadiyarajesh.kmptemplate.data.database.entity.Image
-import com.hadiyarajesh.kmptemplate.network.PicsumApi
+import com.hadiyarajesh.kmptemplate.data.network.PicsumApi
 
 private const val FIRST_PAGE = 1
 
-class PicsumPagingSource(private val picsumApi: PicsumApi, private val pageSize: Int) :
+internal class PicsumPagingSource(private val picsumApi: PicsumApi, private val pageSize: Int) :
     PagingSource<Int, Image>() {
     override fun getRefreshKey(state: PagingState<Int, Image>): Int? =
         state.anchorPosition?.let { anchorPosition ->

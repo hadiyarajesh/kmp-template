@@ -5,15 +5,15 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.hadiyarajesh.kmptemplate.data.database.AppDatabase
 import com.hadiyarajesh.kmptemplate.data.database.createDatabase
-import com.hadiyarajesh.kmptemplate.database.getDatabaseBuilderForAndroid
-import com.hadiyarajesh.kmptemplate.datastore.createDataStoreForAndroid
+import com.hadiyarajesh.kmptemplate.data.database.getDatabaseBuilderForAndroid
+import com.hadiyarajesh.kmptemplate.data.datastore.createDataStoreForAndroid
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
 
 @SingleIn(AppScope::class)
 @DependencyGraph(AppScope::class)
-interface AndroidAppGraph : CommonAppGraph {
+internal interface AndroidAppGraph : CommonAppGraph {
     @DependencyGraph.Factory
     fun interface Factory {
         fun create(@Provides context: Context): AndroidAppGraph

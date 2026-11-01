@@ -1,4 +1,4 @@
-package com.hadiyarajesh.kmptemplate.network
+package com.hadiyarajesh.kmptemplate.data.network
 
 import com.hadiyarajesh.kmptemplate.testutil.mockHttpClient
 import io.ktor.client.engine.mock.respond
@@ -12,7 +12,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlinx.coroutines.test.runTest
 
-class PicsumApiTest {
+internal class PicsumApiTest {
     private val json = """
         [{"id":"7","author":"Jane","width":100,"height":200,
         "url":"https://picsum.photos/7","download_url":"https://picsum.photos/id/7/100/200",

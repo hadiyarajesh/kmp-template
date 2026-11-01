@@ -12,7 +12,7 @@ import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationOpenSettingsURLString
 
 @Composable
-actual fun rememberDownloadPermissionRequester(
+internal actual fun rememberDownloadPermissionRequester(
     onResult: (Boolean) -> Unit
 ): DownloadPermissionRequester {
     return remember(onResult) {

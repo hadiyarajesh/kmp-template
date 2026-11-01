@@ -4,6 +4,7 @@ import app.cash.turbine.ReceiveTurbine
 import app.cash.turbine.test
 import com.hadiyarajesh.kmptemplate.data.download.ImageDownloadManager
 import com.hadiyarajesh.kmptemplate.data.download.ImageSaveResult
+import com.hadiyarajesh.kmptemplate.testutil.FakeImageRepository
 import com.hadiyarajesh.kmptemplate.testutil.FakeImageSaver
 import com.hadiyarajesh.kmptemplate.testutil.mockHttpClient
 import com.hadiyarajesh.kmptemplate.testutil.testImage
@@ -21,18 +22,21 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class DetailViewModelTest {
+internal class DetailViewModelTest {
     @BeforeTest
     fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
 
     @AfterTest
     fun tearDown() = Dispatchers.resetMain()
 
+    private val repository = FakeImageRepository()
+
     private fun viewModel(saverResult: ImageSaveResult): DetailViewModel = DetailViewModelImpl(
         ImageDownloadManager(
             mockHttpClient { respond(byteArrayOf(1)) },
             FakeImageSaver(saverResult)
-        )
+        ),
+        repository
     )
 
     // The download runs on a real dispatcher inside Ktor, so wait for the state that carries the event.
@@ -56,7 +60,8 @@ class DetailViewModelTest {
         viewModel.uiState.test {
             awaitItem()
 
-            viewModel.downloadImage(testImage())
+            viewModel.start(testImage())
+            viewModel.download()
 
             assertEquals<DownloadEvent>(DownloadEvent.Success, awaitDownloadEvent())
             assertFalse(viewModel.uiState.value.isDownloading)
@@ -70,7 +75,8 @@ class DetailViewModelTest {
         viewModel.uiState.test {
             awaitItem()
 
-            viewModel.downloadImage(testImage())
+            viewModel.start(testImage())
+            viewModel.download()
 
             assertEquals<DownloadEvent>(DownloadEvent.PermissionDenied, awaitDownloadEvent())
         }
@@ -83,7 +89,8 @@ class DetailViewModelTest {
         viewModel.uiState.test {
             awaitItem()
 
-            viewModel.downloadImage(testImage())
+            viewModel.start(testImage())
+            viewModel.download()
 
             assertEquals<DownloadEvent>(DownloadEvent.Error("disk full"), awaitDownloadEvent())
         }
@@ -114,6 +121,33 @@ class DetailViewModelTest {
             viewModel.onEventConsumed()
 
             assertEquals(null, awaitItem().event)
+        }
+    }
+
+    @Test
+    fun startSavesTheSelectedImage() = runTest {
+        val viewModel = viewModel(ImageSaveResult.Success)
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.start(testImage(3))
+            expectNoEvents()
+
+            assertEquals(listOf(testImage(3)), repository.saved)
+        }
+    }
+
+    @Test
+    fun downloadBeforeStartDoesNothing() = runTest {
+        val viewModel = viewModel(ImageSaveResult.Success)
+
+        viewModel.uiState.test {
+            awaitItem()
+
+            viewModel.download()
+
+            expectNoEvents()
         }
     }
 }

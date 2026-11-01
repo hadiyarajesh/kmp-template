@@ -11,8 +11,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import app.cash.molecule.RecompositionMode
 import app.cash.molecule.launchMolecule
-import com.hadiyarajesh.kmptemplate.data.database.entity.Image
-import com.hadiyarajesh.kmptemplate.data.repository.HomeRepository
+import com.hadiyarajesh.kmptemplate.data.repository.ImageRepository
 import com.hadiyarajesh.kmptemplate.di.AppScope
 import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metro.Inject
@@ -21,20 +20,22 @@ import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.launch
+
+private sealed interface HomeEvent {
+    data object Start : HomeEvent
+}
 
 /** What the home screen depends on. */
-interface HomeViewModel {
+internal interface HomeViewModel {
     val uiState: StateFlow<HomeScreenUiState>
 
-    fun loadData()
-    fun saveSelectedImage(image: Image)
+    fun start()
 }
 
 @Inject
 @ViewModelKey
 @ContributesIntoMap(AppScope::class, binding = binding<ViewModel>())
-internal class HomeViewModelImpl(private val homeRepository: HomeRepository) :
+internal class HomeViewModelImpl(private val imageRepository: ImageRepository) :
     ViewModel(),
     HomeViewModel {
     private val events = Channel<HomeEvent>(Channel.UNLIMITED)
@@ -48,12 +49,8 @@ internal class HomeViewModelImpl(private val homeRepository: HomeRepository) :
         present()
     }
 
-    override fun loadData() {
-        events.trySend(HomeEvent.LoadData)
-    }
-
-    override fun saveSelectedImage(image: Image) {
-        events.trySend(HomeEvent.SelectImage(image))
+    override fun start() {
+        events.trySend(HomeEvent.Start)
     }
 
     /** All state lives here: events in, [HomeScreenUiState] out. */
@@ -64,19 +61,15 @@ internal class HomeViewModelImpl(private val homeRepository: HomeRepository) :
         LaunchedEffect(Unit) {
             eventFlow.collect { event ->
                 when (event) {
-                    HomeEvent.LoadData -> if (state !is HomeScreenUiState.Success) {
+                    HomeEvent.Start -> if (state !is HomeScreenUiState.Success) {
                         state = HomeScreenUiState.Loading
                         state = try {
                             HomeScreenUiState.Success(
-                                homeRepository.getImages().cachedIn(viewModelScope)
+                                imageRepository.getImages().cachedIn(viewModelScope)
                             )
                         } catch (e: Exception) {
                             HomeScreenUiState.Error(msg = e.message ?: "Something went wrong")
                         }
-                    }
-
-                    is HomeEvent.SelectImage -> launch {
-                        homeRepository.saveSelectedImage(event.image)
                     }
                 }
             }

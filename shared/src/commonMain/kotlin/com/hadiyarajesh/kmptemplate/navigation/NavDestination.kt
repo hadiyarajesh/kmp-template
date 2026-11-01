@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 
 /** Keys are serializable so the back stack survives configuration change and process death. */
 @Serializable
-sealed interface NavDestination : NavKey {
+internal sealed interface NavDestination : NavKey {
     @Serializable
     data object Onboarding : NavDestination
 

@@ -75,16 +75,13 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun HomeScreenRoute(viewModel: HomeViewModel, onNavigateClick: (Image) -> Unit) {
+internal fun HomeScreenRoute(viewModel: HomeViewModel, onNavigateClick: (Image) -> Unit) {
     val homeScreenUiState by viewModel.uiState.collectAsState()
 
     HomeScreenContent(
         uiState = homeScreenUiState,
-        loadData = { viewModel.loadData() },
-        onImageClick = { image ->
-            viewModel.saveSelectedImage(image)
-            onNavigateClick(image)
-        }
+        start = viewModel::start,
+        onImageClick = onNavigateClick
     )
 }
 
@@ -92,11 +89,11 @@ fun HomeScreenRoute(viewModel: HomeViewModel, onNavigateClick: (Image) -> Unit) 
 @Composable
 private fun HomeScreenContent(
     uiState: HomeScreenUiState,
-    loadData: () -> Unit,
+    start: () -> Unit,
     onImageClick: (Image) -> Unit
 ) {
     LaunchedEffect(Unit) {
-        loadData()
+        start()
     }
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -353,14 +350,13 @@ private fun HomeScreenPreview() {
                                 height = 3333,
                                 sourceUrl = "https://unsplash.com/photos/yC-Yzbqy7PY",
                                 downloadUrl = "https://picsum.photos/id/1/5000/3333",
-                                description = "Photo by Alejandro Escamilla",
-                                altText = stringResource(Res.string.failed_to_load_image)
+                                description = "Photo by Alejandro Escamilla"
                             )
                         )
                     )
                 )
             ),
-            loadData = {},
+            start = {},
             onImageClick = {}
         )
     }
@@ -378,8 +374,7 @@ private fun WallpaperImageCardPreview() {
                 height = 3333,
                 sourceUrl = "https://unsplash.com/photos/yC-Yzbqy7PY",
                 downloadUrl = "https://picsum.photos/id/1/5000/3333",
-                description = "Photo by Alejandro Escamilla",
-                altText = stringResource(Res.string.failed_to_load_image)
+                description = "Photo by Alejandro Escamilla"
             ),
             onImageClick = {}
         )

@@ -42,13 +42,13 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun RowScope.HorizontalSpacer(size: Int) = Spacer(modifier = Modifier.width(size.dp))
+internal fun RowScope.HorizontalSpacer(size: Int) = Spacer(modifier = Modifier.width(size.dp))
 
 @Composable
-fun ColumnScope.VerticalSpacer(size: Int) = Spacer(modifier = Modifier.height(size.dp))
+internal fun ColumnScope.VerticalSpacer(size: Int) = Spacer(modifier = Modifier.height(size.dp))
 
 @Composable
-fun LoadingIndicator(
+internal fun LoadingIndicator(
     modifier: Modifier = Modifier,
     size: Dp = 40.dp,
     color: Color = MaterialTheme.colorScheme.primary,
@@ -66,7 +66,7 @@ fun LoadingIndicator(
 }
 
 @Composable
-fun ErrorItem(
+internal fun ErrorItem(
     text: String,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.error
@@ -82,7 +82,11 @@ fun ErrorItem(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBarWithBackButton(modifier: Modifier = Modifier, title: String, onBackClick: () -> Unit) {
+internal fun TopBarWithBackButton(
+    modifier: Modifier = Modifier,
+    title: String,
+    onBackClick: () -> Unit
+) {
     TopAppBar(
         modifier = modifier,
         navigationIcon = {
@@ -98,7 +102,7 @@ fun TopBarWithBackButton(modifier: Modifier = Modifier, title: String, onBackCli
 }
 
 @Composable
-fun ClickableUrlText(
+internal fun ClickableUrlText(
     modifier: Modifier = Modifier,
     label: String? = null,
     url: String,
@@ -136,7 +140,7 @@ fun ClickableUrlText(
 }
 
 @Composable
-fun ImagePlaceholder(
+internal fun ImagePlaceholder(
     modifier: Modifier = Modifier,
     contentDescription: String? = null,
     contentScale: ContentScale = ContentScale.Crop
@@ -149,7 +153,7 @@ fun ImagePlaceholder(
     )
 }
 
-inline fun <T : Any> LazyGridScope.items(
+internal inline fun <T : Any> LazyGridScope.items(
     items: LazyPagingItems<T>,
     noinline key: ((item: T) -> Any)? = null,
     crossinline itemContent: @Composable LazyGridItemScope.(item: T) -> Unit

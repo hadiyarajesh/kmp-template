@@ -4,15 +4,15 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.hadiyarajesh.kmptemplate.data.database.entity.Image
-import com.hadiyarajesh.kmptemplate.network.PicsumApi
-import com.hadiyarajesh.kmptemplate.network.PicsumPage
+import com.hadiyarajesh.kmptemplate.data.network.PicsumApi
+import com.hadiyarajesh.kmptemplate.data.network.PicsumPage
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertSame
 import kotlinx.coroutines.runBlocking
 
-class PicsumPagingSourceTest {
+internal class PicsumPagingSourceTest {
     @Test
     fun firstPageSkipsFirstTenItems() = runBlocking {
         val source = createPagingSource(
@@ -114,8 +114,7 @@ class PicsumPagingSourceTest {
         height = 1920,
         sourceUrl = "https://example.com/source/$index",
         downloadUrl = "https://example.com/download/$index",
-        description = "Description $index",
-        altText = "Alt $index"
+        description = "Description $index"
     )
 
     private companion object {

@@ -10,7 +10,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlinx.coroutines.test.runTest
 
-class ImageDownloadManagerTest {
+internal class ImageDownloadManagerTest {
     @Test
     fun savesDownloadedBytesWithSanitizedFileName() = runTest {
         val saver = FakeImageSaver()

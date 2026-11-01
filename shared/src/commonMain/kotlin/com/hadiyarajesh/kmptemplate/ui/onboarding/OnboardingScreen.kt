@@ -40,7 +40,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun OnboardingScreen(onGetStarted: () -> Unit) {
+internal fun OnboardingScreen(onGetStarted: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize()) {
         AsyncImage(
             modifier = Modifier.fillMaxSize(),

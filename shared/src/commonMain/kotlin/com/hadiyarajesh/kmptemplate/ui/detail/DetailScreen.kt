@@ -62,7 +62,6 @@ import kmptemplate.shared.generated.resources.dimensions
 import kmptemplate.shared.generated.resources.download
 import kmptemplate.shared.generated.resources.download_permission_denied
 import kmptemplate.shared.generated.resources.downloading
-import kmptemplate.shared.generated.resources.failed_to_load_image
 import kmptemplate.shared.generated.resources.go_to_settings
 import kmptemplate.shared.generated.resources.ic_download
 import kmptemplate.shared.generated.resources.image_placeholder
@@ -82,7 +81,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-fun DetailScreenRoute(image: Image, viewModel: DetailViewModel, onBackClick: () -> Unit) {
+internal fun DetailScreenRoute(image: Image, viewModel: DetailViewModel, onBackClick: () -> Unit) {
     val uriHandler = LocalUriHandler.current
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -90,11 +89,13 @@ fun DetailScreenRoute(image: Image, viewModel: DetailViewModel, onBackClick: () 
 
     val permissionRequester = rememberDownloadPermissionRequester { granted ->
         if (granted) {
-            viewModel.downloadImage(image)
+            viewModel.download()
         } else {
             viewModel.notifyPermissionDenied()
         }
     }
+
+    LaunchedEffect(image) { viewModel.start(image) }
 
     val event = uiState.event
     LaunchedEffect(event, imageSavedMessage) {
@@ -131,7 +132,7 @@ fun DetailScreenRoute(image: Image, viewModel: DetailViewModel, onBackClick: () 
         snackbarHostState = snackbarHostState,
         onDownloadClick = {
             if (permissionRequester.hasRequiredPermission()) {
-                viewModel.downloadImage(image)
+                viewModel.download()
             } else {
                 permissionRequester.requestPermission()
             }
@@ -489,8 +490,7 @@ private fun DetailScreenPreview() {
                 height = 3333,
                 sourceUrl = "https://unsplash.com/photos/yC-Yzbqy7PY",
                 downloadUrl = "https://picsum.photos/id/1/5000/3333",
-                description = stringResource(Res.string.welcome_message),
-                altText = stringResource(Res.string.failed_to_load_image)
+                description = stringResource(Res.string.welcome_message)
             ),
             isDownloading = false,
             onBackClick = {},

@@ -33,7 +33,7 @@ private val navSavedStateConfig = SavedStateConfiguration {
 }
 
 @Composable
-fun AppNavigation(
+internal fun AppNavigation(
     startDestination: NavDestination,
     onOnboardingCompleted: () -> Unit,
     modifier: Modifier = Modifier
