@@ -21,18 +21,23 @@ import dev.zacsweers.metro.binding
 import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 /** What the detail screen depends on. */
 internal interface DetailViewModel {
     val uiState: StateFlow<DetailUiState>
 
+    // One-shot events stay out of uiState. Each flow is meant for a single collector.
+    val downloadEventFlow: Flow<DownloadEvent>
+    val permissionDeniedFlow: Flow<Unit>
+
     /** Records [image] as the selected image. [download] acts on it. */
     fun start(image: Image)
     fun download()
     fun notifyPermissionDenied()
-    fun onEventConsumed()
 }
 
 @Inject
@@ -45,11 +50,18 @@ internal class DetailViewModelImpl(
     DetailViewModel {
     private val actions = Channel<DetailAction>(Channel.UNLIMITED)
 
+    // Channels, not SharedFlows: they hold events while nothing collects, e.g. during rotation.
+    private val downloadEvents = Channel<DownloadEvent>(Channel.BUFFERED)
+    private val permissionDenied = Channel<Unit>(Channel.BUFFERED)
+
     override val uiState: StateFlow<DetailUiState> = viewModelScope.launchMolecule(
         mode = RecompositionMode.Immediate
     ) {
         present()
     }
+
+    override val downloadEventFlow: Flow<DownloadEvent> = downloadEvents.receiveAsFlow()
+    override val permissionDeniedFlow: Flow<Unit> = permissionDenied.receiveAsFlow()
 
     override fun start(image: Image) {
         actions.trySend(DetailAction.Start(image))
@@ -60,11 +72,7 @@ internal class DetailViewModelImpl(
     }
 
     override fun notifyPermissionDenied() {
-        actions.trySend(DetailAction.PermissionDenied)
-    }
-
-    override fun onEventConsumed() {
-        actions.trySend(DetailAction.EventConsumed)
+        permissionDenied.trySend(Unit)
     }
 
     /** All state lives here: actions in, [DetailUiState] out. */
@@ -72,7 +80,6 @@ internal class DetailViewModelImpl(
     private fun present(): DetailUiState {
         var image by remember { mutableStateOf<Image?>(null) }
         var isDownloading by remember { mutableStateOf(false) }
-        var event by remember { mutableStateOf<DownloadEvent?>(null) }
 
         LaunchedEffect(Unit) {
             for (action in actions) {
@@ -87,27 +94,26 @@ internal class DetailViewModelImpl(
                         if (selected != null && !isDownloading) {
                             isDownloading = true
                             launch {
-                                event = download(selected)
+                                val result = imageDownloadManager.downloadAndSave(selected)
                                 isDownloading = false
+                                when (result) {
+                                    ImageSaveResult.Success ->
+                                        downloadEvents.send(DownloadEvent.Succeeded)
+
+                                    is ImageSaveResult.Error ->
+                                        downloadEvents.send(DownloadEvent.Failed(result.message))
+
+                                    ImageSaveResult.PermissionDenied -> permissionDenied.send(Unit)
+                                }
                             }
                         }
                     }
-
-                    DetailAction.PermissionDenied -> event = DownloadEvent.PermissionDenied
-                    DetailAction.EventConsumed -> event = null
                 }
             }
         }
 
-        return DetailUiState(isDownloading = isDownloading, event = event)
+        return DetailUiState(isDownloading = isDownloading)
     }
-
-    private suspend fun download(image: Image): DownloadEvent =
-        when (val result = imageDownloadManager.downloadAndSave(image)) {
-            ImageSaveResult.Success -> DownloadEvent.Success
-            ImageSaveResult.PermissionDenied -> DownloadEvent.PermissionDenied
-            is ImageSaveResult.Error -> DownloadEvent.Error(result.message)
-        }
 }
 
 /** Returns the [DetailViewModel] scoped to the current navigation entry. */

@@ -33,8 +33,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -77,7 +79,6 @@ import kmptemplate.shared.generated.resources.permission_dialog_title
 import kmptemplate.shared.generated.resources.permission_not_now
 import kmptemplate.shared.generated.resources.save_to_device
 import kmptemplate.shared.generated.resources.source
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -90,8 +91,8 @@ internal fun DetailScreenRoute(
     val uriHandler = LocalUriHandler.current
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val snackbarScope = rememberCoroutineScope()
     val imageSavedMessage = stringResource(Res.string.image_saved_success)
+    var showPermissionDialog by rememberSaveable { mutableStateOf(false) }
 
     val permissionRequester = rememberDownloadPermissionRequester { granted ->
         if (granted) {
@@ -103,26 +104,27 @@ internal fun DetailScreenRoute(
 
     LaunchedEffect(viewModel, image) { viewModel.start(image) }
 
-    val event = uiState.event
-    LaunchedEffect(event) {
-        val message = when (event) {
-            DownloadEvent.Success -> imageSavedMessage
-            is DownloadEvent.Error -> event.message
-            DownloadEvent.PermissionDenied, null -> return@LaunchedEffect
+    LaunchedEffect(viewModel, imageSavedMessage) {
+        viewModel.downloadEventFlow.collect { event ->
+            when (event) {
+                DownloadEvent.Succeeded -> snackbarHostState.showSnackbar(imageSavedMessage)
+                is DownloadEvent.Failed -> snackbarHostState.showSnackbar(event.message)
+            }
         }
-        viewModel.onEventConsumed()
-        // Consuming the event restarts this effect, so the snackbar must outlive it.
-        snackbarScope.launch { snackbarHostState.showSnackbar(message) }
     }
 
-    if (event == DownloadEvent.PermissionDenied) {
+    LaunchedEffect(viewModel) {
+        viewModel.permissionDeniedFlow.collect { showPermissionDialog = true }
+    }
+
+    if (showPermissionDialog) {
         PermissionDeniedDialog(
             canOpenSettings = permissionRequester.canOpenSettings(),
             onOpenSettings = {
                 permissionRequester.openSettings()
-                viewModel.onEventConsumed()
+                showPermissionDialog = false
             },
-            onDismiss = viewModel::onEventConsumed
+            onDismiss = { showPermissionDialog = false }
         )
     }
 

@@ -1,43 +1,16 @@
 # KMP Template
 
-This template repository provides a quick start for creating new Kotlin Multiplatform apps using
-[Compose Multiplatform](https://www.jetbrains.com/compose-multiplatform/) as the UI framework and
-targeting Android and iOS from a shared codebase.
+A starter for Kotlin Multiplatform apps that share one Compose Multiplatform UI between Android
+and iOS. It's a small, complete wallpaper app: an onboarding screen, a paged image feed, and a
+detail screen that saves images to the gallery. It's big enough to show the patterns, and small
+enough to read in an afternoon.
 
-It includes the following popular libraries:
-
-- [Ktor](https://ktor.io/) - A multiplatform HTTP client for networking.
-- [Metro](https://github.com/ZacSweers/metro) - A multiplatform, compile-time dependency injection
-  framework for Kotlin.
-- [Molecule](https://github.com/cashapp/molecule) - Builds ViewModel state with Compose, so state
-  logic is a plain `@Composable` presenter.
-- [Navigation3](https://developer.android.com/jetpack/androidx/releases/navigation3) - Multiplatform
-  navigation APIs used for the app flow.
-- [Room](https://developer.android.com/training/data-storage/room) - Cross-platform local
-  persistence for Android and iOS with a shared schema setup.
-- [AndroidX DataStore](https://developer.android.com/topic/libraries/architecture/datastore) -
-  Key-value persistence for lightweight app preferences.
-- [AndroidX Paging](https://developer.android.com/topic/libraries/architecture/paging/v3-overview) -
-  Infinite scrolling support for paged image feeds.
-- [Coil](https://github.com/coil-kt/coil) - Image loading in Compose Multiplatform.
-- [Ktlint](https://pinterest.github.io/ktlint/) - Kotlin code style checks and formatting.
-
-Current toolchain: Kotlin 2.4, AGP 9.5, Gradle 9.8, Compose Multiplatform 1.12.
-
-## How to use
-
-To use this template, simply click on the **Use this template** button at the top (or fork the
-repository) and start building your app on top of it.
-Before building and deploying your app, update the package name, `applicationId`, the Android
-namespaces in `androidApp` and `shared`, the iOS bundle ID in `Config.xcconfig`, and the app name.
-
-## Visuals
 <table>
   <tr>
-    <th>Home Screen - Android</th>
-    <th>Detail Screen - Android</th>
-    <th>Home Screen - iOS</th>
-    <th>Detail Screen - iOS</th>
+    <th>Android · Home</th>
+    <th>Android · Detail</th>
+    <th>iOS · Home</th>
+    <th>iOS · Detail</th>
   </tr>
   <tr>
     <td><img src="./assets/android_home_screen.png" width="400" /></td>
@@ -47,140 +20,110 @@ namespaces in `androidApp` and `shared`, the iOS bundle ID in `Config.xcconfig`,
   </tr>
 </table>
 
-## Project structure
+## What's inside
 
-The project follows the [new default KMP structure](https://blog.jetbrains.com/kotlin/2026/05/new-kmp-default-structure/):
-platform entry points are thin apps and all code lives in one shared library module.
+| Area           | Library                                                                                              |
+|----------------|------------------------------------------------------------------------------------------------------|
+| UI             | [Compose Multiplatform](https://www.jetbrains.com/compose-multiplatform/), Material 3                 |
+| State          | [Molecule](https://github.com/cashapp/molecule) presenters inside ViewModels                         |
+| DI             | [Metro](https://github.com/ZacSweers/metro), compile-time and multiplatform                          |
+| Navigation     | [Navigation 3](https://developer.android.com/guide/navigation/navigation-3) with serializable keys   |
+| Networking     | [Ktor](https://ktor.io/) and kotlinx.serialization                                                   |
+| Paging         | [AndroidX Paging](https://developer.android.com/topic/libraries/architecture/paging/v3-overview)      |
+| Storage        | [Room](https://developer.android.com/kotlin/multiplatform/room) and [DataStore](https://developer.android.com/kotlin/multiplatform/datastore) |
+| Images         | [Coil 3](https://github.com/coil-kt/coil)                                                            |
+| Testing        | kotlin.test, [Turbine](https://github.com/cashapp/turbine), Ktor `MockEngine`                         |
+| Code style     | [ktlint](https://pinterest.github.io/ktlint/)                                                        |
 
-- [/shared](./shared/src) is a Kotlin Multiplatform library with all app code, split into `ui`,
-  `data` (database, datastore, network, repository, download), `di` and `navigation`:
-    - [commonMain](./shared/src/commonMain/kotlin) contains shared logic, UI, and app
-      architecture.
-    - [androidMain](./shared/src/androidMain/kotlin) contains Android-only implementations. It uses
-      the `com.android.kotlin.multiplatform.library` plugin.
-    - [iosMain](./shared/src/iosMain/kotlin) contains iOS-only implementations. The module is
-      exported to iOS as the `Shared` framework.
-- [/androidApp](./androidApp/src/main) is the Android application: `MainActivity`, `Application`
-  class, manifest, launcher icons and app-level config.
-- [/iosApp](./iosApp/iosApp) is the iOS application: SwiftUI entry point that hosts the shared
-  Compose UI.
+Built with Kotlin 2.4, Compose Multiplatform 1.12, AGP 9.5 and Gradle 9.8.
 
-## Architecture
+## Getting started
 
-Each screen is three files:
+1. Click **Use this template** (or fork the repository).
+2. Rename it for your app:
+    - The package `com.hadiyarajesh.kmptemplate` in `shared` and `androidApp`.
+    - `applicationId` and `namespace` in [androidApp/build.gradle.kts](./androidApp/build.gradle.kts),
+      and `namespace` in [shared/build.gradle.kts](./shared/build.gradle.kts).
+    - `PRODUCT_NAME` and `PRODUCT_BUNDLE_IDENTIFIER` in
+      [Config.xcconfig](./iosApp/Configuration/Config.xcconfig).
+    - `app_name` in the Android and shared `strings.xml` files.
+3. Set `TEAM_ID` in [Config.xcconfig](./iosApp/Configuration/Config.xcconfig) to run on an iOS
+   device.
 
-```text
-ui/home/
-  HomeScreen.kt          UI, depends only on the HomeViewModel interface
-  HomeViewModel.kt       interface + HomeViewModelImpl (DI annotations, Molecule, present())
-  HomeScreenUiState.kt   state types the UI renders
-```
+### Run on Android
 
-Every ViewModel exposes `start()`, which the screen calls once from a `LaunchedEffect`. Anything a
-screen needs at start-up is passed there (for example `DetailViewModel.start(image)` records the
-selected image), so screens never reach into repositories.
-
-Visibility is kept minimal and enforced with Kotlin's explicit API mode: everything in `shared` is
-`internal` except `App`, `CommonAppGraph` and the platform entry points. Event and action types
-used only by one ViewModel are `private` in its file.
-
-- **State** lives in the implementation's `present()` function, a `@Composable` that turns events
-  into UI state. `uiState` is the `StateFlow` that `launchMolecule` returns, so
-  there is no `MutableStateFlow` and no `start()` call. The ViewModel only owns a `Channel` that
-  feeds `present()`.
-- **Tests** build `HomeViewModelImpl` with fakes and assert on `uiState` with Turbine. See
-  `shared/src/commonTest`.
-- **DI** uses Metro's ViewModel support. Adding a screen needs three annotations on the
-  implementation, with no graph edits:
-
-  ```kotlin
-  @Inject
-  @ViewModelKey
-  @ContributesIntoMap(AppScope::class, binding = binding<ViewModel>())
-  internal class HomeViewModelImpl(...) : ViewModel(), HomeViewModel
-  ```
-
-  Repositories and platform classes bind the same way with `@ContributesBinding(AppScope::class)`.
-  Only providers that need construction logic (database, DataStore) live in the graphs.
-- **Navigation** uses Navigation 3 with serializable `NavDestination` keys, so the back stack
-  survives process death. `AppNavigation` is the one place that resolves a ViewModel
-  (`metroViewModel<HomeViewModelImpl>()`) and hands it to the screen as its interface. Each
-  ViewModel is scoped to its back stack entry.
-
-Platform graphs are created per platform: `createAndroidAppGraph` in `shared/androidMain` (called
-from `MyApplication`) and `createGraph<IosAppGraph>()` in `MainViewController`.
-
-## Build and Run Android Application
-
-To build and run the development version of the Android app, use the run configuration from the run
-widget in your IDE's toolbar or build it directly from the terminal:
+Use the `androidApp` run configuration in Android Studio, or build from the terminal:
 
 ```shell
 ./gradlew :androidApp:assembleDebug
 ```
 
-## Build and Run iOS Application
+### Run on iOS
 
-To build and run the development version of the iOS app, use the run configuration from the run
-widget in your IDE's toolbar or open the [/iosApp](./iosApp) directory in Xcode and run it from
-there. Set `TEAM_ID` in [Config.xcconfig](./iosApp/Configuration/Config.xcconfig) first.
+Open [iosApp/iosApp.xcodeproj](./iosApp) in Xcode and run. Xcode builds the `Shared` framework
+through Gradle as part of the build.
 
-## Unit Testing
+## Project structure
 
-- Common Kotlin tests live in `shared/src/commonTest`: PagingSource, repository, API (Ktor
-  `MockEngine`), download manager and ViewModel tests. Shared fakes are in `testutil/Fakes.kt`.
-- Android host tests: `./gradlew :shared:testAndroidHostTest`
-- iOS simulator tests: `./gradlew :shared:iosSimulatorArm64Test`
-- Add `androidHostTest` / `androidDeviceTest` / `iosTest` source sets under `shared/src` for
-  platform-specific tests.
+The project follows the
+[new default KMP structure](https://blog.jetbrains.com/kotlin/2026/05/new-kmp-default-structure/):
 
-## Formatting
+- [shared](./shared/src) is a Kotlin Multiplatform library that holds all app code. Most of it is
+  in `commonMain`. `androidMain` and `iosMain` contain only what needs a platform API.
+- [androidApp](./androidApp/src/main) is the Android application: activity, `Application`
+  class, manifest and launcher icons.
+- [iosApp](./iosApp/iosApp) is the SwiftUI app that hosts the shared UI.
 
-This project uses [Ktlint](https://github.com/pinterest/ktlint) for Kotlin code style and formatting.
+## Architecture
 
-To format Kotlin code, run:
+Each screen has a ViewModel interface with an `internal` implementation. State is built by a
+Molecule presenter, and one-shot events such as snackbars come through their own flows. Metro
+wires everything through annotations, and Navigation 3 scopes each ViewModel to its back stack
+entry.
+
+[ARCHITECTURE.md](./ARCHITECTURE.md) explains each piece, the reasoning behind it, and how to add
+a screen.
+
+## Testing
+
+Shared tests live in [shared/src/commonTest](./shared/src/commonTest) and cover the ViewModels,
+the API client, paging, the repository and the download flow. They run on both platforms:
 
 ```shell
-./gradlew ktlintFormat
+./gradlew :shared:testAndroidHostTest
+./gradlew :shared:iosSimulatorArm64Test
 ```
 
-To check formatting without changing files, run:
+## Code style
 
 ```shell
-./gradlew ktlintCheck
+./gradlew ktlintFormat   # fix formatting
+./gradlew ktlintCheck    # check only, as CI does
 ```
 
 ## Release builds
 
-Release builds use R8 (`isMinifyEnabled` and `isShrinkResources`). Keep rules for Room, Ktor and
+Android release builds run R8 with code and resource shrinking. Keep rules for Room, Ktor and
 kotlinx.serialization are in [proguard-rules.pro](./androidApp/proguard-rules.pro). Metro needs
-none because its graphs are generated at compile time. Re-check a release build on a device
-after adding libraries that use reflection.
+none, because it generates its graphs at compile time. After adding a library that uses
+reflection, test a release build on a device.
 
-## CI/CD
+## CI
 
-This project includes built-in support for [GitHub Actions](https://github.com/features/actions) to
-automate builds, run tests, and ensure code quality.
-CI/CD workflows can be found in the `.github/workflows/` directory and can be customized based on
-your needs. The Android workflow builds debug and release (R8), runs lint and the host tests.
-[Dependabot](./.github/dependabot.yml) opens weekly update PRs, with Kotlin/KSP and Compose
-updates grouped so they move together.
+GitHub Actions workflows in [.github/workflows](./.github/workflows) check formatting, build the
+Android debug and release apps, run lint and the shared tests, and build the iOS app.
+[Dependabot](./.github/dependabot.yml) opens weekly dependency updates, grouping Kotlin, KSP and
+Compose so they move together.
 
-## Build and Configuration Caching
+## Working with AI agents
 
-This project also takes advantage of
-Gradle's [Build Cache](https://docs.gradle.org/current/userguide/build_cache.html)
-and [Configuration Cache](https://docs.gradle.org/current/userguide/configuration_cache.html)
-features to speed up builds and reduce build times.
-Note that these features may not always provide significant improvements in build times depending on
-the project structure and build complexity.
+[AGENTS.md](./AGENTS.md) gives coding agents the project's commands, rules and known pitfalls.
+`CLAUDE.md` imports it for Claude Code.
 
-## Contribution
+## Contributing
 
-Contributions to this project are welcome! If you encounter any problems or have suggestions for
-improvement, feel free to submit a pull request or open an issue.
+Issues and pull requests are welcome.
 
 ## License
 
-This project is licensed under
-the [MIT License](https://github.com/hadiyarajesh/kmp-template/blob/main/LICENSE).
+[MIT](./LICENSE)

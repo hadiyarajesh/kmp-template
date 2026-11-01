@@ -1,7 +1,7 @@
 package com.hadiyarajesh.kmptemplate.ui.detail
 
-import app.cash.turbine.ReceiveTurbine
 import app.cash.turbine.test
+import app.cash.turbine.turbineScope
 import com.hadiyarajesh.kmptemplate.data.download.ImageDownloadManager
 import com.hadiyarajesh.kmptemplate.data.download.ImageSaveResult
 import com.hadiyarajesh.kmptemplate.testutil.FakeImageRepository
@@ -14,6 +14,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -31,102 +32,92 @@ internal class DetailViewModelTest {
 
     private val repository = FakeImageRepository()
 
-    private fun viewModel(saverResult: ImageSaveResult): DetailViewModel = DetailViewModelImpl(
-        ImageDownloadManager(
-            mockHttpClient { respond(byteArrayOf(1)) },
-            FakeImageSaver(saverResult)
-        ),
-        repository
-    )
-
-    // The download runs on a real dispatcher inside Ktor, so wait for the state that carries the event.
-    private suspend fun ReceiveTurbine<DetailUiState>.awaitDownloadEvent(): DownloadEvent {
-        while (true) {
-            awaitItem().event?.let { return it }
-        }
-    }
+    private fun viewModel(saverResult: ImageSaveResult = ImageSaveResult.Success): DetailViewModel =
+        DetailViewModelImpl(
+            ImageDownloadManager(
+                mockHttpClient { respond(byteArrayOf(1)) },
+                FakeImageSaver(saverResult)
+            ),
+            repository
+        )
 
     @Test
     fun startsIdle() = runTest {
-        viewModel(ImageSaveResult.Success).uiState.test {
+        viewModel().uiState.test {
             assertEquals(DetailUiState(), awaitItem())
         }
     }
 
+    // The download runs on Ktor's own dispatcher, so collectors wait in wall-clock time.
     @Test
-    fun successfulDownloadEmitsSuccessAndResetsLoading() = runTest {
-        val viewModel = viewModel(ImageSaveResult.Success)
+    fun successfulDownloadTogglesLoadingAndEmitsSucceeded() = runTest {
+        val viewModel = viewModel()
 
-        viewModel.uiState.test {
-            awaitItem()
+        turbineScope {
+            val states = viewModel.uiState.testIn(backgroundScope)
+            val events = viewModel.downloadEventFlow.testIn(backgroundScope)
+            assertFalse(states.awaitItem().isDownloading)
 
             viewModel.start(testImage())
             viewModel.download()
 
-            assertEquals<DownloadEvent>(DownloadEvent.Success, awaitDownloadEvent())
-            assertFalse(viewModel.uiState.value.isDownloading)
+            assertTrue(states.awaitItem().isDownloading)
+            assertFalse(states.awaitItem().isDownloading)
+            assertEquals(DownloadEvent.Succeeded, events.awaitItem())
         }
     }
 
     @Test
-    fun permissionDeniedIsForwarded() = runTest {
+    fun saverPermissionDeniedEmitsPermissionDenied() = runTest {
         val viewModel = viewModel(ImageSaveResult.PermissionDenied)
 
-        viewModel.uiState.test {
+        viewModel.start(testImage())
+        viewModel.download()
+
+        viewModel.permissionDeniedFlow.test {
             awaitItem()
-
-            viewModel.start(testImage())
-            viewModel.download()
-
-            assertEquals<DownloadEvent>(DownloadEvent.PermissionDenied, awaitDownloadEvent())
         }
     }
 
     @Test
-    fun saveErrorIsForwardedWithMessage() = runTest {
+    fun saveErrorEmitsFailureMessage() = runTest {
         val viewModel = viewModel(ImageSaveResult.Error("disk full"))
 
-        viewModel.uiState.test {
-            awaitItem()
+        viewModel.start(testImage())
+        viewModel.download()
 
-            viewModel.start(testImage())
-            viewModel.download()
-
-            assertEquals<DownloadEvent>(DownloadEvent.Error("disk full"), awaitDownloadEvent())
+        viewModel.downloadEventFlow.test {
+            assertEquals(DownloadEvent.Failed("disk full"), awaitItem())
         }
     }
 
     @Test
-    fun notifyPermissionDeniedEmitsEvent() = runTest {
-        val viewModel = viewModel(ImageSaveResult.Success)
+    fun notifyPermissionDeniedEmitsPermissionDenied() = runTest {
+        val viewModel = viewModel()
 
-        viewModel.uiState.test {
+        viewModel.notifyPermissionDenied()
+
+        viewModel.permissionDeniedFlow.test {
             awaitItem()
-
-            viewModel.notifyPermissionDenied()
-
-            assertEquals<DownloadEvent>(DownloadEvent.PermissionDenied, awaitDownloadEvent())
         }
     }
 
     @Test
-    fun consumingEventClearsIt() = runTest {
-        val viewModel = viewModel(ImageSaveResult.Success)
+    fun eventsWaitForACollector() = runTest {
+        val viewModel = viewModel()
 
-        viewModel.uiState.test {
+        // Nothing collects yet, as during rotation; the event must still arrive later.
+        viewModel.notifyPermissionDenied()
+
+        viewModel.permissionDeniedFlow.test {
             awaitItem()
-            viewModel.notifyPermissionDenied()
-            awaitDownloadEvent()
-
-            viewModel.onEventConsumed()
-
-            assertEquals(null, awaitItem().event)
+            expectNoEvents()
         }
     }
 
     @Test
     fun startSavesTheSelectedImage() = runTest {
-        val viewModel = viewModel(ImageSaveResult.Success)
+        val viewModel = viewModel()
 
         viewModel.uiState.test {
             awaitItem()
@@ -140,7 +131,7 @@ internal class DetailViewModelTest {
 
     @Test
     fun downloadBeforeStartDoesNothing() = runTest {
-        val viewModel = viewModel(ImageSaveResult.Success)
+        val viewModel = viewModel()
 
         viewModel.uiState.test {
             awaitItem()
