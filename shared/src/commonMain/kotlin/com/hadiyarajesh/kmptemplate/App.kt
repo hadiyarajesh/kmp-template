@@ -9,11 +9,9 @@ import com.hadiyarajesh.kmptemplate.di.CommonAppGraph
 import com.hadiyarajesh.kmptemplate.navigation.AppNavigation
 import com.hadiyarajesh.kmptemplate.navigation.NavDestination
 import com.hadiyarajesh.kmptemplate.ui.components.LoadingIndicator
-import com.hadiyarajesh.kmptemplate.ui.onboarding.OnboardingViewModel
-import com.hadiyarajesh.kmptemplate.ui.onboarding.OnboardingViewModelImpl
+import com.hadiyarajesh.kmptemplate.ui.onboarding.onboardingViewModel
 import com.hadiyarajesh.kmptemplate.ui.theme.AppTheme
 import dev.zacsweers.metrox.viewmodel.LocalMetroViewModelFactory
-import dev.zacsweers.metrox.viewmodel.metroViewModel
 
 @Composable
 public fun App(appGraph: CommonAppGraph) {
@@ -26,10 +24,10 @@ public fun App(appGraph: CommonAppGraph) {
 
 @Composable
 private fun AppRoot() {
-    val onboardingViewModel: OnboardingViewModel = metroViewModel<OnboardingViewModelImpl>()
-    val shouldShowOnboarding by onboardingViewModel.shouldShowOnboarding.collectAsState()
+    val viewModel = onboardingViewModel()
+    val shouldShowOnboarding by viewModel.shouldShowOnboarding.collectAsState()
 
-    LaunchedEffect(Unit) { onboardingViewModel.start() }
+    LaunchedEffect(viewModel) { viewModel.start() }
 
     // The start destination depends on a stored value, so wait for it before building the stack.
     when (val showOnboarding = shouldShowOnboarding) {
@@ -41,7 +39,7 @@ private fun AppRoot() {
             } else {
                 NavDestination.Home
             },
-            onOnboardingCompleted = onboardingViewModel::completeOnboarding
+            onOnboardingCompleted = viewModel::completeOnboarding
         )
     }
 }

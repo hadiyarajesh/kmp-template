@@ -10,13 +10,8 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
 import com.hadiyarajesh.kmptemplate.ui.detail.DetailScreenRoute
-import com.hadiyarajesh.kmptemplate.ui.detail.DetailViewModel
-import com.hadiyarajesh.kmptemplate.ui.detail.DetailViewModelImpl
 import com.hadiyarajesh.kmptemplate.ui.home.HomeScreenRoute
-import com.hadiyarajesh.kmptemplate.ui.home.HomeViewModel
-import com.hadiyarajesh.kmptemplate.ui.home.HomeViewModelImpl
 import com.hadiyarajesh.kmptemplate.ui.onboarding.OnboardingScreen
-import dev.zacsweers.metrox.viewmodel.metroViewModel
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
@@ -61,21 +56,14 @@ internal fun AppNavigation(
             }
 
             entry<NavDestination.Home> {
-                // Screens only see the interface; the Impl type is known here and nowhere else.
-                val viewModel: HomeViewModel = metroViewModel<HomeViewModelImpl>()
-
                 HomeScreenRoute(
-                    viewModel = viewModel,
-                    onNavigateClick = { image -> backStack.add(NavDestination.Detail(image)) }
+                    onImageClick = { image -> backStack.add(NavDestination.Detail(image)) }
                 )
             }
 
             entry<NavDestination.Detail> { key ->
-                val viewModel: DetailViewModel = metroViewModel<DetailViewModelImpl>()
-
                 DetailScreenRoute(
                     image = key.image,
-                    viewModel = viewModel,
                     onBackClick = { backStack.removeLastOrNull() }
                 )
             }

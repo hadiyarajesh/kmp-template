@@ -6,7 +6,9 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 
 @Composable
@@ -19,12 +21,13 @@ internal actual fun rememberDownloadPermissionRequester(
     } else {
         null
     }
+    val currentOnResult by rememberUpdatedState(onResult)
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = onResult
     )
 
-    return remember(context, permissionToRequest, launcher, onResult) {
+    return remember(context, permissionToRequest, launcher) {
         object : DownloadPermissionRequester {
             override fun hasRequiredPermission(): Boolean = permissionToRequest == null ||
                 context.checkSelfPermission(permissionToRequest) ==
@@ -32,7 +35,7 @@ internal actual fun rememberDownloadPermissionRequester(
 
             override fun requestPermission() {
                 if (permissionToRequest == null) {
-                    onResult(true)
+                    currentOnResult(true)
                 } else {
                     launcher.launch(permissionToRequest)
                 }

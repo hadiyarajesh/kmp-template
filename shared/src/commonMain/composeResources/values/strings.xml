@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">KMP Template</string>
-    <string name="welcome_message">Welcome to KMP Template</string>
     <string name="go_back">Go back</string>
     <string name="detail">Detail</string>
     <string name="about">About</string>
@@ -11,8 +10,6 @@
     <string name="download">Download</string>
     <string name="retry">Retry</string>
     <string name="go_to_top">Go to top</string>
-    <string name="url">URL</string>
-    <string name="failed_to_load_image">Failed to load image</string>
     <string name="save_to_device">Download</string>
     <string name="downloading">Downloading...</string>
     <string name="image_saved_success">Image saved to your device</string>

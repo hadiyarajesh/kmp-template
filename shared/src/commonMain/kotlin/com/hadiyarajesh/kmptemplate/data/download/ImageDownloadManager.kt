@@ -5,6 +5,7 @@ import com.hadiyarajesh.kmptemplate.data.network.AppHttpClient
 import dev.zacsweers.metro.Inject
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import kotlin.coroutines.cancellation.CancellationException
 
 @Inject
 internal class ImageDownloadManager(
@@ -18,6 +19,8 @@ internal class ImageDownloadManager(
             fileName = image.suggestedFileName(),
             sourceUrl = image.downloadUrl
         )
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: Exception) {
         ImageSaveResult.Error(message = e.message ?: "Unable to download image")
     }

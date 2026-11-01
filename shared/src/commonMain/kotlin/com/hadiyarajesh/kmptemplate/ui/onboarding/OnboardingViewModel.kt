@@ -16,15 +16,11 @@ import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.binding
 import dev.zacsweers.metrox.viewmodel.ViewModelKey
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-
-private sealed interface OnboardingAction {
-    data object Start : OnboardingAction
-    data object Complete : OnboardingAction
-}
 
 /** What the app root depends on. */
 internal interface OnboardingViewModel {
@@ -33,6 +29,15 @@ internal interface OnboardingViewModel {
 
     fun start()
     fun completeOnboarding()
+}
+
+/** Returns the [OnboardingViewModel] scoped to the current ViewModelStoreOwner. */
+@Composable
+internal fun onboardingViewModel(): OnboardingViewModel = metroViewModel<OnboardingViewModelImpl>()
+
+private sealed interface OnboardingAction {
+    data object Start : OnboardingAction
+    data object Complete : OnboardingAction
 }
 
 @Inject

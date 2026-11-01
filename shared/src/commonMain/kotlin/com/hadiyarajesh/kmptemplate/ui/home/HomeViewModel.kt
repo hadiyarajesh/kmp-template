@@ -17,13 +17,10 @@ import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.binding
 import dev.zacsweers.metrox.viewmodel.ViewModelKey
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
-
-private sealed interface HomeEvent {
-    data object Start : HomeEvent
-}
 
 /** What the home screen depends on. */
 internal interface HomeViewModel {
@@ -32,16 +29,24 @@ internal interface HomeViewModel {
     fun start()
 }
 
+/** Returns the [HomeViewModel] scoped to the current navigation entry. */
+@Composable
+internal fun homeViewModel(): HomeViewModel = metroViewModel<HomeViewModelImpl>()
+
+private sealed interface HomeAction {
+    data object Start : HomeAction
+}
+
 @Inject
 @ViewModelKey
 @ContributesIntoMap(AppScope::class, binding = binding<ViewModel>())
 internal class HomeViewModelImpl(private val imageRepository: ImageRepository) :
     ViewModel(),
     HomeViewModel {
-    private val events = Channel<HomeEvent>(Channel.UNLIMITED)
+    private val actions = Channel<HomeAction>(Channel.UNLIMITED)
 
     // Created once: a new Flow per recomposition would restart the presenter's LaunchedEffect.
-    private val eventFlow = events.receiveAsFlow()
+    private val actionFlow = actions.receiveAsFlow()
 
     override val uiState: StateFlow<HomeScreenUiState> = viewModelScope.launchMolecule(
         mode = RecompositionMode.Immediate
@@ -50,18 +55,18 @@ internal class HomeViewModelImpl(private val imageRepository: ImageRepository) :
     }
 
     override fun start() {
-        events.trySend(HomeEvent.Start)
+        actions.trySend(HomeAction.Start)
     }
 
-    /** All state lives here: events in, [HomeScreenUiState] out. */
+    /** All state lives here: actions in, [HomeScreenUiState] out. */
     @Composable
     private fun present(): HomeScreenUiState {
         var state: HomeScreenUiState by remember { mutableStateOf(HomeScreenUiState.Initial) }
 
         LaunchedEffect(Unit) {
-            eventFlow.collect { event ->
-                when (event) {
-                    HomeEvent.Start -> if (state !is HomeScreenUiState.Success) {
+            actionFlow.collect { action ->
+                when (action) {
+                    HomeAction.Start -> if (state !is HomeScreenUiState.Success) {
                         state = HomeScreenUiState.Loading
                         state = try {
                             HomeScreenUiState.Success(

@@ -34,6 +34,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -76,15 +77,20 @@ import kmptemplate.shared.generated.resources.permission_dialog_title
 import kmptemplate.shared.generated.resources.permission_not_now
 import kmptemplate.shared.generated.resources.save_to_device
 import kmptemplate.shared.generated.resources.source
-import kmptemplate.shared.generated.resources.welcome_message
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-internal fun DetailScreenRoute(image: Image, viewModel: DetailViewModel, onBackClick: () -> Unit) {
+internal fun DetailScreenRoute(
+    image: Image,
+    onBackClick: () -> Unit,
+    viewModel: DetailViewModel = detailViewModel()
+) {
     val uriHandler = LocalUriHandler.current
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val snackbarScope = rememberCoroutineScope()
     val imageSavedMessage = stringResource(Res.string.image_saved_success)
 
     val permissionRequester = rememberDownloadPermissionRequester { granted ->
@@ -95,23 +101,18 @@ internal fun DetailScreenRoute(image: Image, viewModel: DetailViewModel, onBackC
         }
     }
 
-    LaunchedEffect(image) { viewModel.start(image) }
+    LaunchedEffect(viewModel, image) { viewModel.start(image) }
 
     val event = uiState.event
-    LaunchedEffect(event, imageSavedMessage) {
-        when (event) {
-            DownloadEvent.Success -> {
-                viewModel.onEventConsumed()
-                snackbarHostState.showSnackbar(imageSavedMessage)
-            }
-
-            is DownloadEvent.Error -> {
-                viewModel.onEventConsumed()
-                snackbarHostState.showSnackbar(event.message)
-            }
-
-            DownloadEvent.PermissionDenied, null -> Unit
+    LaunchedEffect(event) {
+        val message = when (event) {
+            DownloadEvent.Success -> imageSavedMessage
+            is DownloadEvent.Error -> event.message
+            DownloadEvent.PermissionDenied, null -> return@LaunchedEffect
         }
+        viewModel.onEventConsumed()
+        // Consuming the event restarts this effect, so the snackbar must outlive it.
+        snackbarScope.launch { snackbarHostState.showSnackbar(message) }
     }
 
     if (event == DownloadEvent.PermissionDenied) {
@@ -415,9 +416,7 @@ private fun AboutCard(
                 color = contentColor
             )
 
-            VerticalSpacer(size = 14)
-
-            VerticalSpacer(size = 18)
+            VerticalSpacer(size = 24)
 
             SectionTitle(
                 text = stringResource(Res.string.links),
@@ -490,7 +489,7 @@ private fun DetailScreenPreview() {
                 height = 3333,
                 sourceUrl = "https://unsplash.com/photos/yC-Yzbqy7PY",
                 downloadUrl = "https://picsum.photos/id/1/5000/3333",
-                description = stringResource(Res.string.welcome_message)
+                description = "Photo by Alejandro Escamilla"
             ),
             isDownloading = false,
             onBackClick = {},

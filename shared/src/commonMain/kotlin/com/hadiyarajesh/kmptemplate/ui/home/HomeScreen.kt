@@ -58,13 +58,11 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import coil3.compose.AsyncImage
 import com.hadiyarajesh.kmptemplate.data.database.entity.Image
 import com.hadiyarajesh.kmptemplate.ui.components.ErrorItem
-import com.hadiyarajesh.kmptemplate.ui.components.ImagePlaceholder
 import com.hadiyarajesh.kmptemplate.ui.components.LoadingIndicator
 import com.hadiyarajesh.kmptemplate.ui.components.items
 import com.hadiyarajesh.kmptemplate.ui.theme.AppTheme
 import kmptemplate.shared.generated.resources.Res
 import kmptemplate.shared.generated.resources.app_name
-import kmptemplate.shared.generated.resources.failed_to_load_image
 import kmptemplate.shared.generated.resources.go_to_top
 import kmptemplate.shared.generated.resources.ic_arrow_up
 import kmptemplate.shared.generated.resources.placeholder_image
@@ -75,27 +73,20 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-internal fun HomeScreenRoute(viewModel: HomeViewModel, onNavigateClick: (Image) -> Unit) {
-    val homeScreenUiState by viewModel.uiState.collectAsState()
+internal fun HomeScreenRoute(
+    onImageClick: (Image) -> Unit,
+    viewModel: HomeViewModel = homeViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
 
-    HomeScreenContent(
-        uiState = homeScreenUiState,
-        start = viewModel::start,
-        onImageClick = onNavigateClick
-    )
+    LaunchedEffect(viewModel) { viewModel.start() }
+
+    HomeScreenContent(uiState = uiState, onImageClick = onImageClick)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun HomeScreenContent(
-    uiState: HomeScreenUiState,
-    start: () -> Unit,
-    onImageClick: (Image) -> Unit
-) {
-    LaunchedEffect(Unit) {
-        start()
-    }
-
+private fun HomeScreenContent(uiState: HomeScreenUiState, onImageClick: (Image) -> Unit) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     Scaffold(
@@ -356,7 +347,6 @@ private fun HomeScreenPreview() {
                     )
                 )
             ),
-            start = {},
             onImageClick = {}
         )
     }
@@ -377,17 +367,6 @@ private fun WallpaperImageCardPreview() {
                 description = "Photo by Alejandro Escamilla"
             ),
             onImageClick = {}
-        )
-    }
-}
-
-@Preview
-@Composable
-private fun ImagePlaceholderPreview() {
-    AppTheme {
-        ImagePlaceholder(
-            modifier = Modifier.fillMaxSize(),
-            contentDescription = stringResource(Res.string.failed_to_load_image)
         )
     }
 }

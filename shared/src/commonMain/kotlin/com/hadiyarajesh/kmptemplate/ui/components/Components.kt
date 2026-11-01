@@ -1,6 +1,5 @@
 package com.hadiyarajesh.kmptemplate.ui.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.RowScope
@@ -21,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -36,8 +34,6 @@ import androidx.paging.compose.LazyPagingItems
 import kmptemplate.shared.generated.resources.Res
 import kmptemplate.shared.generated.resources.go_back
 import kmptemplate.shared.generated.resources.ic_arrow_back
-import kmptemplate.shared.generated.resources.image_placeholder
-import kmptemplate.shared.generated.resources.url
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -104,15 +100,14 @@ internal fun TopBarWithBackButton(
 @Composable
 internal fun ClickableUrlText(
     modifier: Modifier = Modifier,
-    label: String? = null,
+    label: String,
     url: String,
     onClick: (String) -> Unit
 ) {
-    val linkLabel = label ?: stringResource(Res.string.url)
     val linkColor = MaterialTheme.colorScheme.primary
     val annotatedString = buildAnnotatedString {
         withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-            append("$linkLabel: ")
+            append("$label: ")
         }
 
         withLink(
@@ -136,20 +131,6 @@ internal fun ClickableUrlText(
         modifier = modifier,
         text = annotatedString,
         style = MaterialTheme.typography.bodyMedium
-    )
-}
-
-@Composable
-internal fun ImagePlaceholder(
-    modifier: Modifier = Modifier,
-    contentDescription: String? = null,
-    contentScale: ContentScale = ContentScale.Crop
-) {
-    Image(
-        modifier = modifier,
-        painter = painterResource(Res.drawable.image_placeholder),
-        contentDescription = contentDescription,
-        contentScale = contentScale
     )
 }
 

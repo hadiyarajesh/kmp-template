@@ -4,6 +4,7 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.hadiyarajesh.kmptemplate.data.database.entity.Image
 import com.hadiyarajesh.kmptemplate.data.network.PicsumApi
+import kotlin.coroutines.cancellation.CancellationException
 
 private const val FIRST_PAGE = 1
 
@@ -32,6 +33,8 @@ internal class PicsumPagingSource(private val picsumApi: PicsumApi, private val 
             prevKey = if (page == FIRST_PAGE) null else page - 1,
             nextKey = if (response.hasNextPage) page + 1 else null
         )
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: Exception) {
         LoadResult.Error(e)
     }

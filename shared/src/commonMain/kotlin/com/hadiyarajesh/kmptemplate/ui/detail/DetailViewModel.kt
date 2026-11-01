@@ -19,17 +19,11 @@ import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.binding
 import dev.zacsweers.metrox.viewmodel.ViewModelKey
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-
-private sealed interface DetailAction {
-    data class Start(val image: Image) : DetailAction
-    data object Download : DetailAction
-    data object PermissionDenied : DetailAction
-    data object EventConsumed : DetailAction
-}
 
 /** What the detail screen depends on. */
 internal interface DetailViewModel {
@@ -40,6 +34,17 @@ internal interface DetailViewModel {
     fun download()
     fun notifyPermissionDenied()
     fun onEventConsumed()
+}
+
+/** Returns the [DetailViewModel] scoped to the current navigation entry. */
+@Composable
+internal fun detailViewModel(): DetailViewModel = metroViewModel<DetailViewModelImpl>()
+
+private sealed interface DetailAction {
+    data class Start(val image: Image) : DetailAction
+    data object Download : DetailAction
+    data object PermissionDenied : DetailAction
+    data object EventConsumed : DetailAction
 }
 
 @Inject
