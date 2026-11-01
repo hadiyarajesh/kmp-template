@@ -105,6 +105,7 @@ fun ClickableUrlText(
     onClick: (String) -> Unit
 ) {
     val linkLabel = label ?: stringResource(Res.string.url)
+    val linkColor = MaterialTheme.colorScheme.primary
     val annotatedString = buildAnnotatedString {
         withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
             append("$linkLabel: ")
@@ -115,7 +116,7 @@ fun ClickableUrlText(
                 url,
                 TextLinkStyles(
                     style = SpanStyle(
-                        color = Color.Blue,
+                        color = linkColor,
                         textDecoration = TextDecoration.Underline
                     )
                 )

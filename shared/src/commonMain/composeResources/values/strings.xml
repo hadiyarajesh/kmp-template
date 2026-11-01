@@ -32,4 +32,8 @@
     <string name="onboarding_feature_cross_platform">Android + iOS</string>
     <string name="onboarding_get_started">Start Exploring</string>
     <string name="onboarding_background_cd">Onboarding wallpaper background</string>
+    <string name="links">Links</string>
+    <string name="orientation_portrait">Portrait</string>
+    <string name="orientation_landscape">Landscape</string>
+    <string name="orientation_square">Square</string>
 </resources>

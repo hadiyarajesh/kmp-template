@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -64,6 +65,10 @@ import kmptemplate.shared.generated.resources.failed_to_load_image
 import kmptemplate.shared.generated.resources.go_to_settings
 import kmptemplate.shared.generated.resources.image_placeholder
 import kmptemplate.shared.generated.resources.image_saved_success
+import kmptemplate.shared.generated.resources.links
+import kmptemplate.shared.generated.resources.orientation_landscape
+import kmptemplate.shared.generated.resources.orientation_portrait
+import kmptemplate.shared.generated.resources.orientation_square
 import kmptemplate.shared.generated.resources.save_to_device
 import kmptemplate.shared.generated.resources.source
 import kmptemplate.shared.generated.resources.welcome_message
@@ -153,6 +158,9 @@ private fun DetailScreenContent(
 ) {
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        bottomBar = {
+            DownloadBar(isDownloading = isDownloading, onDownloadClick = onDownloadClick)
+        },
         topBar = {
             TopBarWithBackButton(
                 title = stringResource(Res.string.detail),
@@ -160,23 +168,39 @@ private fun DetailScreenContent(
             )
         }
     ) { innerPadding ->
-        Column(
+        ImageDetailView(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .verticalScroll(rememberScrollState())
+                .padding(innerPadding)
+                .padding(16.dp),
+            image = image,
+            onImageUrlClick = onImageUrlClick
+        )
+    }
+}
+
+@Composable
+private fun DownloadBar(isDownloading: Boolean, onDownloadClick: () -> Unit) {
+    Surface(tonalElevation = 3.dp) {
+        Button(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            enabled = !isDownloading,
+            onClick = onDownloadClick
         ) {
-            ImageDetailView(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
-                image = image,
-                isDownloading = isDownloading,
-                onDownloadClick = onDownloadClick,
-                onImageUrlClick = onImageUrlClick
-            )
+            if (isDownloading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(18.dp),
+                    strokeWidth = 2.dp
+                )
+                HorizontalSpacer(size = 10)
+                Text(text = stringResource(Res.string.downloading))
+            } else {
+                Text(text = stringResource(Res.string.save_to_device))
+            }
         }
     }
 }
@@ -185,8 +209,6 @@ private fun DetailScreenContent(
 private fun ImageDetailView(
     modifier: Modifier = Modifier,
     image: Image,
-    isDownloading: Boolean,
-    onDownloadClick: () -> Unit,
     onImageUrlClick: (String) -> Unit
 ) {
     Column(
@@ -208,8 +230,6 @@ private fun ImageDetailView(
 
         AboutCard(
             image = image,
-            isDownloading = isDownloading,
-            onDownloadClick = onDownloadClick,
             onImageUrlClick = onImageUrlClick
         )
     }
@@ -225,7 +245,7 @@ private fun WallpaperHero(modifier: Modifier = Modifier, image: Image) {
         AsyncImage(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(9f / 14f),
+                .aspectRatio(image.heroAspectRatio()),
             model = image.detailImageUrl(targetWidth = 1440),
             contentDescription = image.description,
             placeholder = painterResource(Res.drawable.image_placeholder),
@@ -316,8 +336,6 @@ private fun MetadataChip(
 private fun AboutCard(
     modifier: Modifier = Modifier,
     image: Image,
-    isDownloading: Boolean,
-    onDownloadClick: () -> Unit,
     onImageUrlClick: (String) -> Unit
 ) {
     OutlinedCard(
@@ -350,27 +368,10 @@ private fun AboutCard(
 
             VerticalSpacer(size = 14)
 
-            Button(
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !isDownloading,
-                onClick = onDownloadClick
-            ) {
-                if (isDownloading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.dp
-                    )
-                    HorizontalSpacer(size = 10)
-                    Text(text = stringResource(Res.string.downloading))
-                } else {
-                    Text(text = stringResource(Res.string.save_to_device))
-                }
-            }
-
             VerticalSpacer(size = 18)
 
             SectionTitle(
-                text = stringResource(Res.string.source),
+                text = stringResource(Res.string.links),
                 color = contentColor
             )
 
@@ -415,11 +416,18 @@ private fun String.initials(): String = trim()
     .joinToString("") { it.first().uppercase() }
     .ifBlank { "A" }
 
-private fun Image.orientationLabel(): String = when {
-    height > width -> "Portrait"
-    width > height -> "Landscape"
-    else -> "Square"
-}
+/** Shows the photo at its own shape so it is not cropped, within sane bounds. */
+private fun Image.heroAspectRatio(): Float =
+    if (width > 0 && height > 0) (width.toFloat() / height).coerceIn(0.6f, 1.6f) else 1f
+
+@Composable
+private fun Image.orientationLabel(): String = stringResource(
+    when {
+        height > width -> Res.string.orientation_portrait
+        width > height -> Res.string.orientation_landscape
+        else -> Res.string.orientation_square
+    }
+)
 
 @Preview
 @Composable
