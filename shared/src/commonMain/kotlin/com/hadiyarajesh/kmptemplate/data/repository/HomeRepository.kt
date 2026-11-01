@@ -7,6 +7,7 @@ import com.hadiyarajesh.kmptemplate.data.database.dao.ImageDao
 import com.hadiyarajesh.kmptemplate.data.database.entity.Image
 import com.hadiyarajesh.kmptemplate.di.AppScope
 import com.hadiyarajesh.kmptemplate.network.PicsumApi
+import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.Flow
@@ -19,6 +20,7 @@ interface HomeRepository {
 }
 
 @Inject
+@ContributesBinding(AppScope::class)
 @SingleIn(AppScope::class)
 class HomeRepositoryImpl(private val picsumApi: PicsumApi, private val imageDao: ImageDao) :
     HomeRepository {

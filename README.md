@@ -9,6 +9,8 @@ It includes the following popular libraries:
 - [Ktor](https://ktor.io/) - A multiplatform HTTP client for networking.
 - [Metro](https://github.com/ZacSweers/metro) - A multiplatform, compile-time dependency injection
   framework for Kotlin.
+- [Molecule](https://github.com/cashapp/molecule) - Builds ViewModel state with Compose, so state
+  logic is a plain `@Composable` presenter.
 - [Navigation3](https://developer.android.com/jetpack/androidx/releases/navigation3) - Multiplatform
   navigation APIs used for the app flow.
 - [Room](https://developer.android.com/training/data-storage/room) - Cross-platform local
@@ -62,8 +64,42 @@ platform entry points are thin apps and all code lives in one shared library mod
 - [/iosApp](./iosApp/iosApp) is the iOS application: SwiftUI entry point that hosts the shared
   Compose UI.
 
-Dependency injection graphs are created per platform: `createAndroidAppGraph` in `shared/androidMain`
-(called from `MyApplication`) and `createGraph<IosAppGraph>()` in `MainViewController`.
+## Architecture
+
+Each screen is two files plus the UI:
+
+```text
+ui/home/
+  HomeScreen.kt      UI, depends only on the HomeViewModel interface
+  HomeViewModel.kt   interface + HomeViewModelImpl (DI annotations, Molecule, presenter function)
+  HomeModels.kt      HomeScreenUiState and HomeEvent
+```
+
+- **State** lives in the implementation's `present()` function, a `@Composable` that turns events
+  into UI state. `uiState` is the `StateFlow` that `launchMolecule` returns, so
+  there is no `MutableStateFlow` and no `start()` call. The ViewModel only owns a `Channel` that
+  feeds `present()`.
+- **Tests** build `HomeViewModelImpl` with fakes and assert on `uiState` with Turbine. See
+  `shared/src/commonTest`.
+- **DI** uses Metro's ViewModel support. Adding a screen needs three annotations on the
+  implementation, with no graph edits:
+
+  ```kotlin
+  @Inject
+  @ViewModelKey
+  @ContributesIntoMap(AppScope::class, binding = binding<ViewModel>())
+  internal class HomeViewModelImpl(...) : ViewModel(), HomeViewModel
+  ```
+
+  Repositories and platform classes bind the same way with `@ContributesBinding(AppScope::class)`.
+  Only providers that need construction logic (database, DataStore) live in the graphs.
+- **Navigation** uses Navigation 3 with serializable `NavDestination` keys, so the back stack
+  survives process death. `AppNavigation` is the one place that resolves a ViewModel
+  (`metroViewModel<HomeViewModelImpl>()`) and hands it to the screen as its interface. Each
+  ViewModel is scoped to its back stack entry.
+
+Platform graphs are created per platform: `createAndroidAppGraph` in `shared/androidMain` (called
+from `MyApplication`) and `createGraph<IosAppGraph>()` in `MainViewController`.
 
 ## Build and Run Android Application
 

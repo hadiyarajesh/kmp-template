@@ -1,5 +1,7 @@
 package com.hadiyarajesh.kmptemplate.data.download
 
+import com.hadiyarajesh.kmptemplate.di.AppScope
+import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlin.coroutines.resume
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -26,6 +28,7 @@ import platform.posix.open
 import platform.posix.write
 
 @Inject
+@ContributesBinding(AppScope::class)
 @OptIn(ExperimentalForeignApi::class)
 class IosImageSaver : ImageSaver {
     override suspend fun saveImage(

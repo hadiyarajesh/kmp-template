@@ -13,20 +13,22 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -59,33 +61,32 @@ import kmptemplate.shared.generated.resources.detail
 import kmptemplate.shared.generated.resources.dimensions
 import kmptemplate.shared.generated.resources.download
 import kmptemplate.shared.generated.resources.download_permission_denied
-import kmptemplate.shared.generated.resources.download_permission_denied_with_settings
 import kmptemplate.shared.generated.resources.downloading
 import kmptemplate.shared.generated.resources.failed_to_load_image
 import kmptemplate.shared.generated.resources.go_to_settings
+import kmptemplate.shared.generated.resources.ic_download
 import kmptemplate.shared.generated.resources.image_placeholder
 import kmptemplate.shared.generated.resources.image_saved_success
 import kmptemplate.shared.generated.resources.links
+import kmptemplate.shared.generated.resources.ok
 import kmptemplate.shared.generated.resources.orientation_landscape
 import kmptemplate.shared.generated.resources.orientation_portrait
 import kmptemplate.shared.generated.resources.orientation_square
+import kmptemplate.shared.generated.resources.permission_dialog_message_settings
+import kmptemplate.shared.generated.resources.permission_dialog_title
+import kmptemplate.shared.generated.resources.permission_not_now
 import kmptemplate.shared.generated.resources.save_to_device
 import kmptemplate.shared.generated.resources.source
 import kmptemplate.shared.generated.resources.welcome_message
-import kotlinx.coroutines.flow.collectLatest
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun DetailScreenRoute(image: Image, viewModel: DetailViewModel, onBackClick: () -> Unit) {
     val uriHandler = LocalUriHandler.current
-    val isDownloading by viewModel.isDownloading.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val imageSavedMessage = stringResource(Res.string.image_saved_success)
-    val permissionDeniedMessage = stringResource(Res.string.download_permission_denied)
-    val permissionDeniedWithSettingsMessage =
-        stringResource(Res.string.download_permission_denied_with_settings)
-    val goToSettingsLabel = stringResource(Res.string.go_to_settings)
 
     val permissionRequester = rememberDownloadPermissionRequester { granted ->
         if (granted) {
@@ -95,43 +96,37 @@ fun DetailScreenRoute(image: Image, viewModel: DetailViewModel, onBackClick: () 
         }
     }
 
-    LaunchedEffect(
-        viewModel,
-        imageSavedMessage,
-        permissionDeniedMessage,
-        permissionDeniedWithSettingsMessage,
-        goToSettingsLabel,
-        permissionRequester,
-        snackbarHostState
-    ) {
-        viewModel.events.collectLatest { event ->
-            when (event) {
-                DownloadEvent.Success -> snackbarHostState.showSnackbar(imageSavedMessage)
-
-                DownloadEvent.PermissionDenied -> {
-                    val canOpenSettings = permissionRequester.canOpenSettings()
-                    val result = snackbarHostState.showSnackbar(
-                        message = if (canOpenSettings) {
-                            permissionDeniedWithSettingsMessage
-                        } else {
-                            permissionDeniedMessage
-                        },
-                        actionLabel = if (canOpenSettings) goToSettingsLabel else null,
-                        withDismissAction = canOpenSettings
-                    )
-                    if (canOpenSettings && result == SnackbarResult.ActionPerformed) {
-                        permissionRequester.openSettings()
-                    }
-                }
-
-                is DownloadEvent.Error -> snackbarHostState.showSnackbar(event.message)
+    val event = uiState.event
+    LaunchedEffect(event, imageSavedMessage) {
+        when (event) {
+            DownloadEvent.Success -> {
+                viewModel.onEventConsumed()
+                snackbarHostState.showSnackbar(imageSavedMessage)
             }
+
+            is DownloadEvent.Error -> {
+                viewModel.onEventConsumed()
+                snackbarHostState.showSnackbar(event.message)
+            }
+
+            DownloadEvent.PermissionDenied, null -> Unit
         }
+    }
+
+    if (event == DownloadEvent.PermissionDenied) {
+        PermissionDeniedDialog(
+            canOpenSettings = permissionRequester.canOpenSettings(),
+            onOpenSettings = {
+                permissionRequester.openSettings()
+                viewModel.onEventConsumed()
+            },
+            onDismiss = viewModel::onEventConsumed
+        )
     }
 
     DetailScreenContent(
         image = image,
-        isDownloading = isDownloading,
+        isDownloading = uiState.isDownloading,
         onBackClick = onBackClick,
         snackbarHostState = snackbarHostState,
         onDownloadClick = {
@@ -143,6 +138,59 @@ fun DetailScreenRoute(image: Image, viewModel: DetailViewModel, onBackClick: () 
         },
         onImageUrlClick = { url ->
             runCatching { uriHandler.openUri(url) }
+        }
+    )
+}
+
+@Composable
+private fun PermissionDeniedDialog(
+    canOpenSettings: Boolean,
+    onOpenSettings: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painter = painterResource(Res.drawable.ic_download),
+                    contentDescription = null
+                )
+                HorizontalSpacer(size = 12)
+                Text(
+                    text = stringResource(Res.string.permission_dialog_title),
+                    style = MaterialTheme.typography.titleLarge
+                )
+            }
+        },
+        text = {
+            Text(
+                text = stringResource(
+                    if (canOpenSettings) {
+                        Res.string.permission_dialog_message_settings
+                    } else {
+                        Res.string.download_permission_denied
+                    }
+                )
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = if (canOpenSettings) onOpenSettings else onDismiss) {
+                Text(
+                    text = stringResource(
+                        if (canOpenSettings) Res.string.go_to_settings else Res.string.ok
+                    )
+                )
+            }
+        },
+        dismissButton = if (canOpenSettings) {
+            {
+                TextButton(onClick = onDismiss) {
+                    Text(text = stringResource(Res.string.permission_not_now))
+                }
+            }
+        } else {
+            null
         }
     )
 }

@@ -5,12 +5,15 @@ import android.content.Context
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import com.hadiyarajesh.kmptemplate.di.AppScope
+import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @Inject
+@ContributesBinding(AppScope::class)
 class AndroidImageSaver(private val context: Context) : ImageSaver {
     override suspend fun saveImage(
         bytes: ByteArray,

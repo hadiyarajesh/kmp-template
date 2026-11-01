@@ -24,6 +24,8 @@ kotlin {
         }
         withHostTest {
             isIncludeAndroidResources = true
+            // Compose runtime calls android.os.Trace, which is unmocked on the JVM.
+            isReturnDefaultValues = true
         }
     }
 
@@ -49,9 +51,12 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
 
             implementation(libs.kotlinx.coroutinesCore)
+            implementation(libs.molecule.runtime)
             implementation(libs.jetbrains.navigation3.ui)
             implementation(libs.jetbrains.lifecycle.viewmodelNavigation3)
             api(libs.androidx.lifecycle.viewmodel)
+            api(libs.metrox.viewmodel)
+            implementation(libs.metrox.viewmodel.compose)
 
             implementation(libs.bundles.ktor.common)
             implementation(libs.bundles.coil)
@@ -74,6 +79,7 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutinesTest)
+            implementation(libs.turbine)
             implementation(libs.ktor.client.mock)
         }
     }

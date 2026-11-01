@@ -1,6 +1,7 @@
 package com.hadiyarajesh.kmptemplate.ui.home
 
 import androidx.paging.PagingData
+import app.cash.turbine.test
 import com.hadiyarajesh.kmptemplate.data.database.entity.Image
 import com.hadiyarajesh.kmptemplate.data.repository.HomeRepository
 import com.hadiyarajesh.kmptemplate.testutil.testImage
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -28,48 +30,67 @@ class HomeViewModelTest {
     fun tearDown() = Dispatchers.resetMain()
 
     @Test
-    fun startsInInitialState() {
-        assertEquals(HomeScreenUiState.Initial, HomeViewModel(repository).uiState.value)
+    fun startsInInitialState() = runTest {
+        HomeViewModelImpl(repository).uiState.test {
+            assertEquals(HomeScreenUiState.Initial, awaitItem())
+        }
     }
 
     @Test
-    fun loadDataEmitsSuccess() {
-        val viewModel = HomeViewModel(repository)
+    fun loadDataEmitsSuccess() = runTest {
+        val viewModel = HomeViewModelImpl(repository)
 
-        viewModel.loadData()
+        viewModel.uiState.test {
+            assertEquals(HomeScreenUiState.Initial, awaitItem())
 
-        assertIs<HomeScreenUiState.Success>(viewModel.uiState.value)
+            viewModel.loadData()
+
+            assertIs<HomeScreenUiState.Success>(expectMostRecentItem())
+        }
     }
 
     @Test
-    fun loadDataKeepsExistingSuccessState() {
-        val viewModel = HomeViewModel(repository)
-        viewModel.loadData()
-        val first = viewModel.uiState.value
+    fun loadDataKeepsExistingSuccessState() = runTest {
+        val viewModel = HomeViewModelImpl(repository)
 
-        viewModel.loadData()
+        viewModel.uiState.test {
+            awaitItem()
+            viewModel.loadData()
+            expectMostRecentItem()
 
-        assertEquals(first, viewModel.uiState.value)
-        assertEquals(1, repository.getImagesCalls)
+            viewModel.loadData()
+
+            expectNoEvents()
+            assertEquals(1, repository.getImagesCalls)
+        }
     }
 
     @Test
-    fun loadDataEmitsErrorWhenRepositoryThrows() {
+    fun loadDataEmitsErrorWhenRepositoryThrows() = runTest {
         repository.getImagesError = IllegalStateException("boom")
-        val viewModel = HomeViewModel(repository)
+        val viewModel = HomeViewModelImpl(repository)
 
-        viewModel.loadData()
+        viewModel.uiState.test {
+            awaitItem()
 
-        assertEquals(HomeScreenUiState.Error("boom"), viewModel.uiState.value)
+            viewModel.loadData()
+
+            assertEquals(HomeScreenUiState.Error("boom"), expectMostRecentItem())
+        }
     }
 
     @Test
-    fun saveSelectedImageDelegatesToRepository() {
-        val viewModel = HomeViewModel(repository)
+    fun saveSelectedImageDelegatesToRepository() = runTest {
+        val viewModel = HomeViewModelImpl(repository)
 
-        viewModel.saveSelectedImage(testImage(3))
+        viewModel.uiState.test {
+            awaitItem()
 
-        assertEquals(listOf(testImage(3)), repository.saved)
+            viewModel.saveSelectedImage(testImage(3))
+            expectNoEvents()
+
+            assertEquals(listOf(testImage(3)), repository.saved)
+        }
     }
 }
 

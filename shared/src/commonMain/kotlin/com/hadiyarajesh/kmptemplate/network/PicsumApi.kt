@@ -1,6 +1,8 @@
 package com.hadiyarajesh.kmptemplate.network
 
 import com.hadiyarajesh.kmptemplate.data.database.entity.Image
+import com.hadiyarajesh.kmptemplate.di.AppScope
+import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -13,6 +15,7 @@ interface PicsumApi {
 }
 
 @Inject
+@ContributesBinding(AppScope::class)
 class PicsumApiImpl(private val appHttpClient: AppHttpClient) : PicsumApi {
     override suspend fun getImageList(page: Int, limit: Int): PicsumPage {
         val response = appHttpClient.client.get("v2/list") {
