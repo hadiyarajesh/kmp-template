@@ -36,7 +36,10 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build Android app and run unit tests
-        run: ./gradlew :androidApp:assembleDebug :shared:testAndroidHostTest
+        run: ./gradlew :androidApp:assembleDebug :androidApp:lintDebug :shared:testAndroidHostTest
+
+      - name: Build release APK with R8
+        run: ./gradlew :androidApp:assembleRelease
 
       # Upload test reports only if the test step fails
       - name: Archive test reports

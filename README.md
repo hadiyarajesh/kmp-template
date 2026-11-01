@@ -82,7 +82,8 @@ there. Set `TEAM_ID` in [Config.xcconfig](./iosApp/Configuration/Config.xcconfig
 
 ## Unit Testing
 
-- Common Kotlin tests live in `shared/src/commonTest` (utilities, PagingSource behavior).
+- Common Kotlin tests live in `shared/src/commonTest`: PagingSource, repository, API (Ktor
+  `MockEngine`), download manager and ViewModel tests. Shared fakes are in `testutil/Fakes.kt`.
 - Android host tests: `./gradlew :shared:testAndroidHostTest`
 - iOS simulator tests: `./gradlew :shared:iosSimulatorArm64Test`
 - Add `androidHostTest` / `androidDeviceTest` / `iosTest` source sets under `shared/src` for
@@ -104,12 +105,21 @@ To check formatting without changing files, run:
 ./gradlew ktlintCheck
 ```
 
+## Release builds
+
+Release builds use R8 (`isMinifyEnabled` and `isShrinkResources`). Keep rules for Room, Ktor and
+kotlinx.serialization are in [proguard-rules.pro](./androidApp/proguard-rules.pro). Metro needs
+none because its graphs are generated at compile time. Re-check a release build on a device
+after adding libraries that use reflection.
+
 ## CI/CD
 
 This project includes built-in support for [GitHub Actions](https://github.com/features/actions) to
 automate builds, run tests, and ensure code quality.
 CI/CD workflows can be found in the `.github/workflows/` directory and can be customized based on
-your needs.
+your needs. The Android workflow builds debug and release (R8), runs lint and the host tests.
+[Dependabot](./.github/dependabot.yml) opens weekly update PRs, with Kotlin/KSP and Compose
+updates grouped so they move together.
 
 ## Build and Configuration Caching
 

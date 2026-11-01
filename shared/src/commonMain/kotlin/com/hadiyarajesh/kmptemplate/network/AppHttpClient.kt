@@ -4,6 +4,8 @@ import com.hadiyarajesh.kmptemplate.di.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
+import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -21,10 +23,17 @@ private val NetworkJson = Json {
     ignoreUnknownKeys = true
 }
 
-@Inject
 @SingleIn(AppScope::class)
-class AppHttpClient {
-    val client: HttpClient = HttpClient {
+class AppHttpClient private constructor(val client: HttpClient) {
+    @Inject
+    constructor() : this(createHttpClient())
+
+    /** Lets tests supply a mock engine. */
+    internal constructor(engine: HttpClientEngine) : this(createHttpClient(engine))
+}
+
+private fun createHttpClient(engine: HttpClientEngine? = null): HttpClient {
+    val configure: HttpClientConfig<*>.() -> Unit = {
         expectSuccess = true
 
         install(DefaultRequest) {
@@ -52,4 +61,5 @@ class AppHttpClient {
             socketTimeoutMillis = timeout
         }
     }
+    return if (engine == null) HttpClient(configure) else HttpClient(engine, configure)
 }

@@ -1,21 +1,24 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# R8 rules for release builds. Libraries ship their own consumer rules; only gaps are listed here.
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Room: the generated database implementation and the KMP constructor object are created by
+# reflection when the database is built.
+-keep class * extends androidx.room.RoomDatabase { <init>(); }
+-keep class * implements androidx.room.RoomDatabaseConstructor { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Ktor: optional JVM-only references (slf4j, JMX, ...) that are not on the Android classpath.
+-dontwarn org.slf4j.**
+-dontwarn java.lang.management.**
+-dontwarn io.netty.**
+-dontwarn reactor.blockhound.**
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# kotlinx.serialization: keep generated serializers for @Serializable classes.
+-keepattributes *Annotation*, InnerClasses
+-keepclassmembers class **$$serializer { *; }
+-keepclassmembers @kotlinx.serialization.Serializable class ** {
+    static **$* *;
+    *** Companion;
+    *** INSTANCE;
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+# Metro: graphs are generated at compile time with no reflection, so no keep rules are needed.
