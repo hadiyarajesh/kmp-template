@@ -20,12 +20,14 @@ It includes the following popular libraries:
 - [Coil](https://github.com/coil-kt/coil) - Image loading in Compose Multiplatform.
 - [Ktlint](https://pinterest.github.io/ktlint/) - Kotlin code style checks and formatting.
 
+Current toolchain: Kotlin 2.4, AGP 9.5, Gradle 9.8, Compose Multiplatform 1.12.
+
 ## How to use
 
 To use this template, simply click on the **Use this template** button at the top (or fork the
 repository) and start building your app on top of it.
-Make sure to update the package name, app identifiers, and other app-specific details before
-building and deploying your app.
+Before building and deploying your app, update the package name, `applicationId`, the Android
+namespaces in `androidApp` and `shared`, the iOS bundle ID in `Config.xcconfig`, and the app name.
 
 ## Visuals
 <table>
@@ -45,37 +47,46 @@ building and deploying your app.
 
 ## Project structure
 
-- [/composeApp](./composeApp/src) is for shared and platform-specific Kotlin code:
-    - [commonMain](./composeApp/src/commonMain/kotlin) contains shared logic, UI, and app
+The project follows the [new default KMP structure](https://blog.jetbrains.com/kotlin/2026/05/new-kmp-default-structure/):
+platform entry points are thin apps and all code lives in one shared library module.
+
+- [/shared](./shared/src) is a Kotlin Multiplatform library with all app code:
+    - [commonMain](./shared/src/commonMain/kotlin) contains shared logic, UI, and app
       architecture.
-    - [androidMain](./composeApp/src/androidMain/kotlin) contains Android-only implementations.
-    - [iosMain](./composeApp/src/iosMain/kotlin) contains iOS-only implementations.
-- [/iosApp](./iosApp/iosApp) contains the iOS entry application and SwiftUI integration layer.
+    - [androidMain](./shared/src/androidMain/kotlin) contains Android-only implementations. It uses
+      the `com.android.kotlin.multiplatform.library` plugin.
+    - [iosMain](./shared/src/iosMain/kotlin) contains iOS-only implementations. The module is
+      exported to iOS as the `Shared` framework.
+- [/androidApp](./androidApp/src/main) is the Android application: `MainActivity`, `Application`
+  class, manifest, launcher icons and app-level config.
+- [/iosApp](./iosApp/iosApp) is the iOS application: SwiftUI entry point that hosts the shared
+  Compose UI.
+
+Dependency injection graphs are created per platform: `createAndroidAppGraph` in `shared/androidMain`
+(called from `MyApplication`) and `createGraph<IosAppGraph>()` in `MainViewController`.
 
 ## Build and Run Android Application
 
 To build and run the development version of the Android app, use the run configuration from the run
-widget in your IDE’s toolbar or build it directly from the terminal:
+widget in your IDE's toolbar or build it directly from the terminal:
 
 ```shell
-./gradlew :composeApp:assembleDebug
+./gradlew :androidApp:assembleDebug
 ```
 
 ## Build and Run iOS Application
 
 To build and run the development version of the iOS app, use the run configuration from the run
-widget
-in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+widget in your IDE's toolbar or open the [/iosApp](./iosApp) directory in Xcode and run it from
+there. Set `TEAM_ID` in [Config.xcconfig](./iosApp/Configuration/Config.xcconfig) first.
 
 ## Unit Testing
 
-This project supports multiplatform testing with the following features:
-
-- Common Kotlin tests in `commonTest` (for example, utility and PagingSource behavior tests).
-- Android host test execution via Gradle (`./gradlew :composeApp:testDebugUnitTest`).
-- iOS simulator test execution via Gradle (`./gradlew :composeApp:iosSimulatorArm64Test`) for shared
-  `commonTest` coverage.
-- Platform-specific source sets like `androidUnitTest` and `iosTest` can be added as needed.
+- Common Kotlin tests live in `shared/src/commonTest` (utilities, PagingSource behavior).
+- Android host tests: `./gradlew :shared:testAndroidHostTest`
+- iOS simulator tests: `./gradlew :shared:iosSimulatorArm64Test`
+- Add `androidHostTest` / `androidDeviceTest` / `iosTest` source sets under `shared/src` for
+  platform-specific tests.
 
 ## Formatting
 
@@ -84,13 +95,13 @@ This project uses [Ktlint](https://github.com/pinterest/ktlint) for Kotlin code 
 To format Kotlin code, run:
 
 ```shell
-./gradlew ktlintSourceFormat
+./gradlew ktlintFormat
 ```
 
 To check formatting without changing files, run:
 
 ```shell
-./gradlew ktlintSourceCheck
+./gradlew ktlintCheck
 ```
 
 ## CI/CD
